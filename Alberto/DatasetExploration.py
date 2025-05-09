@@ -177,9 +177,11 @@ plt.show()
 # RESCALING THE DATASET
 #######################
 
-# Show rows with age <= 1
-rows_with_age_leq_1 = train_data[train_data['age'] <= 1]
-print("Rows with age <= 1: \n", rows_with_age_leq_1, "\n")
+# Show rows with age <= 0
+rows_with_age_leq_0 = train_data[train_data['age'] <= 0]
+print("Rows with age <= 0: \n", rows_with_age_leq_0, "\n")
+# Remove rows with age <= 0
+train_data = train_data[train_data['age'] > 0]
 
 # Check for values different than 'Male' or 'Female' in the gender column for train data
 invalid_gender_values_train = train_data[~train_data['gender'].isin(['Male', 'Female'])]
@@ -205,10 +207,11 @@ plt.ylabel("Frequency")
 plt.xticks(rotation=45)
 plt.show()
 
-# Check for diabetes values different from 0 and 1
-invalid_diabetes_values = train_data[~train_data['diabetes'].isin([0, 1])]
-print("Rows with invalid diabetes values: \n", invalid_diabetes_values)
-
+# Show rows with BMI >= 80
+rows_with_bmi_geq_80 = train_data[train_data['bmi'] >= 80]
+print("Rows with BMI >= 80: \n", rows_with_bmi_geq_80, "\n")
+# Remove rows with BMI >= 80
+train_data = train_data[train_data['bmi'] < 80]
 
 
 # Compute the covariance matrix
