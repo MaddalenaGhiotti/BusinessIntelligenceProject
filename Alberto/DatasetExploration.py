@@ -9,9 +9,9 @@ import seaborn as sns
 ################
 
 # Import train data
-train_data = pd.read_csv('../diabetes_train.csv')
+train_data = pd.read_csv('../Data/diabetes_train.csv')
 # Import test data
-test_data = pd.read_csv('../diabetes_test.csv')
+test_data = pd.read_csv('../Data/diabetes_test.csv')
 
 #######################
 # EXPLORING THE DATASET
@@ -44,8 +44,6 @@ for col in train_data.select_dtypes(include=np.number).columns:
 # Replace null values with the average for numerical columns in test data
 for col in test_data.select_dtypes(include=np.number).columns:
     test_data[col].fillna(test_data[col].mean(), inplace=True)
-
-
 
 # Plot age vs Frequency (normalized)
 plt.figure(figsize=(8, 5))
@@ -174,48 +172,41 @@ plt.legend(title="Diabetes", loc='upper right')
 plt.show()
 
 #######################
-# RESCALING THE DATASET
+# PREPARING THE DATASET
 #######################
 
-# Show rows with age <= 1
-rows_with_age_leq_1 = train_data[train_data['age'] <= 1]
-print("Rows with age <= 1: \n", rows_with_age_leq_1, "\n")
+# Show rows with age <= 0
+rows_with_age_leq_0 = train_data[train_data['age'] <= 0]
+print("Rows with age <= 0: \n", rows_with_age_leq_0, "\n")
+# Remove rows with age <= 0
+train_data = train_data[train_data['age'] > 0]
 
-# Check for values different than 'Male' or 'Female' in the gender column for train data
-invalid_gender_values_train = train_data[~train_data['gender'].isin(['Male', 'Female'])]
-print("Rows with invalid gender values in train data: \n", invalid_gender_values_train)
-# Check for values different than 'Male' or 'Female' in the gender column for test data
-invalid_gender_values_test = test_data[~test_data['gender'].isin(['Male', 'Female'])]
-print("Rows with invalid gender values in test data: \n", invalid_gender_values_test)
-# Assign 0 to male and 1 to female in the gender column for train data
-train_data['gender'] = train_data['gender'].replace({'Male': 0, 'Female': 1})
-# Assign 0 to male and 1 to female in the gender column for test data
-test_data['gender'] = test_data['gender'].replace({'Male': 0, 'Female': 1})
+# Assign 1 to male and 0 to female in the gender column for train data
+train_data['gender'] = train_data['gender'].replace({'Male': 1, 'Female': 0})
+# Assign 1 to male and 0 to female in the gender column for test data
+test_data['gender'] = test_data['gender'].replace({'Male': 1, 'Female': 0})
 
-# Replace 'ever' with 'never' and 'not current' with 'former' in smoking_history for train data
-train_data['smoking_history'] = train_data['smoking_history'].replace({'ever': 'never', 'not current': 'former'})
-# Replace 'ever' with 'never' and 'not current' with 'former' in smoking_history for test data
-test_data['smoking_history'] = test_data['smoking_history'].replace({'ever': 'never', 'not current': 'former'})
-# Plot histogram of smoking_history
-plt.figure(figsize=(8, 5))
-sns.histplot(data=train_data, x='smoking_history', kde=False, bins=10, color='green')
-plt.title("Histogram of Smoking History (train, adjusted)")
-plt.xlabel("Smoking History")
-plt.ylabel("Frequency")
-plt.xticks(rotation=45)
+# Show rows with BMI >= 80
+rows_with_bmi_geq_80 = train_data[train_data['bmi'] >= 80]
+print("Rows with BMI >= 80: \n", rows_with_bmi_geq_80, "\n")
+# Remove rows with BMI >= 80
+train_data = train_data[train_data['bmi'] < 80]
+
+# Perform one-hot encoding of the smoking_history column for train data
+train_data = pd.get_dummies(train_data, columns=['smoking_history'], prefix='smoking_history')
+# Perform one-hot encoding of the smoking_history column for test data
+test_data = pd.get_dummies(test_data, columns=['smoking_history'], prefix='smoking_history')
+# Remove the smoking_history_no_info column from train and test data
+if 'smoking_history_no_info' in train_data.columns:
+    train_data.drop(columns=['smoking_history_no_info'], inplace=True)
+if 'smoking_history_no_info' in test_data.columns:
+    test_data.drop(columns=['smoking_history_no_info'], inplace=True)
+
+# Compute the covariance matrix for features with respect to the target (diabetes)
+cov_matrix = train_data.corr()
+
+# Plot the correlation matrix
+plt.figure(figsize=(10, 8))
+sns.heatmap(cov_matrix, annot=True, fmt=".2f", cmap="coolwarm", center=0)
+plt.title("Correlation Matrix of Train Data with Respect to Diabetes")
 plt.show()
-
-# Check for diabetes values different from 0 and 1
-invalid_diabetes_values = train_data[~train_data['diabetes'].isin([0, 1])]
-print("Rows with invalid diabetes values: \n", invalid_diabetes_values)
-
-
-
-# Compute the covariance matrix
-#cov_matrix = train_data.cov()
-
-# Plot the covariance matrix
-#plt.figure(figsize=(10, 8))
-#sns.heatmap(cov_matrix, annot=True, fmt=".2f", cmap="coolwarm")
-#plt.title("Covariance Matrix of Train Data")
-#plt.show()
