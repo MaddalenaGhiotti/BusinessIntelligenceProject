@@ -33,7 +33,7 @@ def preprocessing_diabetes(df_train, df_test, option=''):
     y_test = df_test_oh["diabetes"]
 
     # Dividing real vs other columns
-    binary_columns = X_train.columns[X_train.applymap(lambda x: x in [0, 1]).all()]
+    binary_columns = X_train.columns[X_train.map(lambda x: x in [0, 1]).all()]
     numeric_columns = X_train.drop(columns=binary_columns).columns
     X_train_numeric = X_train[numeric_columns]
     X_test_numeric = X_test[numeric_columns]
