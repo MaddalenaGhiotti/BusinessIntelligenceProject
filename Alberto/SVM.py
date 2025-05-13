@@ -132,7 +132,7 @@ def ksvm_train(X_train, y_train, X_test, y_test, kernel_type):
     # Accepted kernel types: 'rbf', 'poly', 'sigmoid'
 
     # Parameters initialization
-    C = 1
+    C = 100
     random_seed = 20000131
 
     # Prepare the model
@@ -160,7 +160,7 @@ def ksvm_train(X_train, y_train, X_test, y_test, kernel_type):
     cm = confusion_matrix(y_test, y_pred)
     plt.figure(figsize=(8, 6))
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Negative', 'Positive'], yticklabels=['Negative', 'Positive'])
-    plt.title(f'Confusion Matrix - {kernel_type} Kernel')
+    plt.title(f'Confusion Matrix - {kernel_type} Kernel - C: {C}')
     plt.xlabel('Predicted')
     plt.ylabel('Actual')
     plt.show()
