@@ -37,7 +37,7 @@ df_test_noSmok = df_test_scal[[col for col in df_test_scal.columns if 'smoking' 
 # TRAINING SVM
 ##############
 
-def lsvm_training(X_train, y_train, X_test, y_test, data_type):
+def lsvm_training(X_train, y_train, X_test, y_test, data_type=''):
     # Trains the Linear SVM model and evaluate its performance.
 
     # Parameters initialization
@@ -127,12 +127,11 @@ def lsvm_training(X_train, y_train, X_test, y_test, data_type):
     # Return metrics
     return f1_hard, f1_soft, precision_hard, precision_soft, recall_hard, recall_soft
 
-def ksvm_train(X_train, y_train, X_test, y_test, kernel_type):
+def ksvm_train(X_train, y_train, X_test, y_test, kernel_type, C = 1, data_type=''):
     # Train the SVM model with a specified kernel and evaluate its performance.
     # Accepted kernel types: 'rbf', 'poly', 'sigmoid'
 
-    # Parameters initialization
-    C = 100
+    # Random seed initialization
     random_seed = 20000131
 
     # Prepare the model
@@ -156,14 +155,16 @@ def ksvm_train(X_train, y_train, X_test, y_test, kernel_type):
     precision = precision_score(y_test, y_pred)
     recall = recall_score(y_test, y_pred)
 
+    """
     # Plot confusion matrix
     cm = confusion_matrix(y_test, y_pred)
     plt.figure(figsize=(8, 6))
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Negative', 'Positive'], yticklabels=['Negative', 'Positive'])
-    plt.title(f'Confusion Matrix - {kernel_type} Kernel - C: {C}')
+    plt.title(f'Confusion Matrix - {kernel_type} Kernel - C: {C} - {data_type}')
     plt.xlabel('Predicted')
     plt.ylabel('Actual')
     plt.show()
+    """
 
     # Return metrics
     return f1, precision, recall
@@ -180,18 +181,21 @@ results = {
     'No Smoking': lsvm_training(df_train_noSmok, y_train, df_test_noSmok, y_test, 'No Smoking'),
 }
 # Display Linear SVM results
+print('Linear SVM Results:')
 results_df = pd.DataFrame(results, index=['F1 Score Hard', 'F1 Score Soft', 'Precision Hard', 'Precision Soft', 'Recall Hard', 'Recall Soft']).T
 results_df.index.name = 'Linear SVM'
 results_df.reset_index(inplace=True)
 display(results_df)
 
 # Kernel SVM
+C = 120
 kernel_results = {
-    'Sigmoid': ksvm_train(df_train_scal, y_train, df_test_scal, y_test, 'sigmoid'),
-    'RBF': ksvm_train(df_train_scal, y_train, df_test_scal, y_test, 'rbf'),
-    'Polynomial': ksvm_train(df_train_scal, y_train, df_test_scal, y_test, 'poly'),
+    'Sigmoid': ksvm_train(df_train_scal, y_train, df_test_scal, y_test, 'sigmoid', C),
+    'RBF': ksvm_train(df_train_scal, y_train, df_test_scal, y_test, 'rbf', C),
+    'Polynomial': ksvm_train(df_train_scal, y_train, df_test_scal, y_test, 'poly', C),
 }
 # Display kernel results
+print(f'Different Kernels Results on Scaled Data with C = {C}:')
 kernel_results_df = pd.DataFrame(kernel_results, index=['F1 Score', 'Precision', 'Recall']).T
 kernel_results_df.index.name = 'Kernel SVM'
 kernel_results_df.reset_index(inplace=True)
@@ -199,14 +203,129 @@ display(kernel_results_df)
 
 # Trying best (rbf) on all data types
 rbf_kernel_results_all = {
-    'Scaled': ksvm_train(df_train_scal, y_train, df_test_scal, y_test, 'rbf'),
-    'PCA': ksvm_train(df_train_PCA, y_train, df_test_PCA, y_test, 'rbf'),
-    'No Features': ksvm_train(df_train_noFeat, y_train, df_test_noFeat, y_test, 'rbf'),
-    'No Smoking': ksvm_train(df_train_noSmok, y_train, df_test_noSmok, y_test, 'rbf'),
+    'Scaled': ksvm_train(df_train_scal, y_train, df_test_scal, y_test, 'rbf', C, 'Scaled'),
+    'PCA': ksvm_train(df_train_PCA, y_train, df_test_PCA, y_test, 'rbf', C, 'PCA'),
+    'No Feature': ksvm_train(df_train_noFeat, y_train, df_test_noFeat, y_test, 'rbf', C, 'No Feature'),
+    'No Smoking': ksvm_train(df_train_noSmok, y_train, df_test_noSmok, y_test, 'rbf', C, 'No Smoking'),
 }
 # Display kernel results
-print('RBF Kernel Results on all dataset preprocessings:')
+print(f'RBF Kernel Results on all dataset preprocessings with C = {C}:')
 rbf_kernel_results_all_df = pd.DataFrame(rbf_kernel_results_all, index=['F1 Score', 'Precision', 'Recall']).T
 rbf_kernel_results_all_df.index.name = 'Kernel rbf SVM'
 rbf_kernel_results_all_df.reset_index(inplace=True)
 display(rbf_kernel_results_all_df)
+
+# Perform kernel SVM with 'rbf' kernel on df_train_noSmok for multiple C values
+C_values = np.linspace(1, 200, 50)
+accuracies = []
+# Loop through different C values
+for C in C_values:
+    _, precision, _ = ksvm_train(df_train_noSmok, y_train, df_test_noSmok, y_test, 'rbf', C, 'No Smoking')
+    accuracies.append(precision)
+# Plot accuracy with respect to C
+plt.figure(figsize=(10, 6))
+plt.plot(C_values, accuracies, marker='o', linestyle='-', color='b')
+plt.title('Accuracy vs C for RBF Kernel SVM (No Smoking Data)')
+plt.xlabel('C Value')
+plt.ylabel('Precision')
+plt.grid(True)
+plt.show()
+
+# Perform kernel SVM with 'rbf' kernel on df_train_noFeat for multiple C values
+accuracies = []
+# Loop through different C values
+for C in C_values:
+    _, precision, _ = ksvm_train(df_train_noFeat, y_train, df_test_noFeat, y_test, 'rbf', C, 'No Feature')
+    accuracies.append(precision)
+# Plot accuracy with respect to C
+plt.figure(figsize=(10, 6))
+plt.plot(C_values, accuracies, marker='o', linestyle='-', color='b')
+plt.title('Accuracy vs C for RBF Kernel SVM (No Feature Data)')
+plt.xlabel('C Value')
+plt.ylabel('Precision')
+plt.grid(True)
+plt.show()
+
+# Perform kernel SVM with 'rbf' kernel on df_train_scal for multiple C values
+accuracies = []
+# Loop through different C values
+for C in C_values:
+    _, precision, _ = ksvm_train(df_train_scal, y_train, df_test_scal, y_test, 'rbf', C, 'Scaled')
+    accuracies.append(precision)
+# Plot accuracy with respect to C
+plt.figure(figsize=(10, 6))
+plt.plot(C_values, accuracies, marker='o', linestyle='-', color='b')
+plt.title('Accuracy vs C for RBF Kernel SVM (Scaled Data)')
+plt.xlabel('C Value')
+plt.ylabel('Precision')
+plt.grid(True)
+plt.show()
+
+# Perform kernel SVM with 'rbf' kernel on df_train_PCA for multiple C values
+accuracies = []
+# Loop through different C values
+for C in C_values:
+    _, precision, _ = ksvm_train(df_train_PCA, y_train, df_test_PCA, y_test, 'rbf', C, 'PCA')
+    accuracies.append(precision)
+# Plot accuracy with respect to C
+plt.figure(figsize=(10, 6))
+plt.plot(C_values, accuracies, marker='o', linestyle='-', color='b')
+plt.title('Accuracy vs C for RBF Kernel SVM (PCA Data)')
+plt.xlabel('C Value')
+plt.ylabel('Precision')
+plt.grid(True)
+plt.show()
+
+
+
+# Perform kernel SVM with 'rbf' kernel on df_train_noSmok for multiple C values (F1 Score)
+f1_scores = []
+for C in C_values:
+    f1, _, _ = ksvm_train(df_train_noSmok, y_train, df_test_noSmok, y_test, 'rbf', C, 'No Smoking')
+    f1_scores.append(f1)
+plt.figure(figsize=(10, 6))
+plt.plot(C_values, f1_scores, marker='o', linestyle='-', color='g')
+plt.title('F1 Score vs C for RBF Kernel SVM (No Smoking Data)')
+plt.xlabel('C Value')
+plt.ylabel('F1 Score')
+plt.grid(True)
+plt.show()
+
+# Perform kernel SVM with 'rbf' kernel on df_train_noFeat for multiple C values (F1 Score)
+f1_scores = []
+for C in C_values:
+    f1, _, _ = ksvm_train(df_train_noFeat, y_train, df_test_noFeat, y_test, 'rbf', C, 'No Feature')
+    f1_scores.append(f1)
+plt.figure(figsize=(10, 6))
+plt.plot(C_values, f1_scores, marker='o', linestyle='-', color='g')
+plt.title('F1 Score vs C for RBF Kernel SVM (No Feature Data)')
+plt.xlabel('C Value')
+plt.ylabel('F1 Score')
+plt.grid(True)
+plt.show()
+
+# Perform kernel SVM with 'rbf' kernel on df_train_scal for multiple C values (F1 Score)
+f1_scores = []
+for C in C_values:
+    f1, _, _ = ksvm_train(df_train_scal, y_train, df_test_scal, y_test, 'rbf', C, 'Scaled')
+    f1_scores.append(f1)
+plt.figure(figsize=(10, 6))
+plt.plot(C_values, f1_scores, marker='o', linestyle='-', color='g')
+plt.title('F1 Score vs C for RBF Kernel SVM (Scaled Data)')
+plt.xlabel('C Value')
+plt.ylabel('F1 Score')
+plt.grid(True)
+plt.show()
+
+# Perform kernel SVM with 'rbf' kernel on df_train_PCA for multiple C values (F1 Score)
+f1_scores = []
+for C in C_values:
+    f1, _, _ = ksvm_train(df_train_PCA, y_train, df_test_PCA, y_test, 'rbf', C, 'PCA')
+    f1_scores.append(f1)
+plt.figure(figsize=(10, 6))
+plt.plot(C_values, f1_scores, marker='o', linestyle='-', color='g')
+plt.title('F1 Score vs C for RBF Kernel SVM (PCA Data)')
+plt.xlabel('C Value')
+plt.ylabel('F1 Score')
+plt.grid(True)
+plt.show()
