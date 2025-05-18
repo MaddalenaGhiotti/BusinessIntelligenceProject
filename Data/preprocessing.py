@@ -3,7 +3,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 
 def preprocessing_diabetes(df_train, df_test, option=''):
-    # Remove Outliers
+    # Remove Errors
     df_train_filter = df_train[(df_train['age'] > 0) & (df_train['bmi'] < 70)].copy().reset_index(drop=True)
     df_test_filter = df_test.loc[(df_test['age'] > 0) & (df_test['bmi'] < 70)].copy().reset_index(drop=True)
 
@@ -51,7 +51,7 @@ def preprocessing_diabetes(df_train, df_test, option=''):
     
     if option == 'PCA':    
         # PCA
-        pca = PCA(n_components=0.95)
+        pca = PCA(n_components=0.975)
         X_train_pca = pca.fit_transform(X_train_combined)
         X_test_pca = pca.transform(X_test_combined)
 
