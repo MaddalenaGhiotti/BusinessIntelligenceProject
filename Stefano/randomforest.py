@@ -33,9 +33,9 @@ def performances(model, data, y_true, title=None):
     stop = time.time()
     totalTime = stop - start
     acc = model.score(data, y_true)
-    prec = precision_score(y_true, y_pred, average='weighted')
-    rec = recall_score(y_true, y_pred, average='weighted')
-    f1 = f1_score(y_true, y_pred, average='weighted')
+    prec = precision_score(y_true, y_pred, average='binary')
+    rec = recall_score(y_true, y_pred, average='binary')
+    f1 = f1_score(y_true, y_pred, average='binary')
     df = pd.DataFrame({'Accuracy': [acc], 
                         'Precision': [prec ], 
                         'Recall': [rec ],
