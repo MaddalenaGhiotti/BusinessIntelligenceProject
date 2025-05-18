@@ -37,7 +37,7 @@ def combination_features(df, operation_list):
 
     return df_result
 
-def preprocessing_diabetes(df_train, df_test, option='', augment=False):
+def preprocessing_diabetes_v2(df_train, df_test, option='', augment=False):
     # Remove Errors
     df_train_filter = df_train[(df_train['age'] > 0) & (df_train['bmi'] < 70)].copy().reset_index(drop=True)
     df_test_filter = df_test.loc[(df_test['age'] > 0) & (df_test['bmi'] < 70)].copy().reset_index(drop=True)
