@@ -178,7 +178,7 @@ for key in rbf_kernel_results_all.keys():
     # Display confusion matrix
     plt.figure()
     sns.heatmap(rbf_kernel_results_all[key][1], annot=True, fmt='d', cmap='Blues', xticklabels=['Negative', 'Positive'], yticklabels=['Negative', 'Positive'])
-    plt.title(f'Confusion Matrix - Hard Margin - {key}')
+    plt.title(f'Confusion Matrix - Kernel rbf - {key}')
     plt.xlabel('Predicted')
     plt.ylabel('Actual')
     plt.show()
