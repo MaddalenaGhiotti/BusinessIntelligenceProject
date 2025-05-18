@@ -13,6 +13,7 @@ import sys
 sys.path.insert(1, '/home/alberto/Documenti/Materiale scuola Alberto/BusinessIntelligenceProject/Data')
 from preprocessing import preprocessing_diabetes
 from linear_r2 import HyperplaneR2
+from metrics import performances
 
 #import warnings
 #warnings.filterwarnings(action='ignore')
@@ -50,42 +51,16 @@ def lsvm_training(X_train, y_train, X_test, y_test, data_type=''):
     random_seed = 20000131
 
     # Prepare the model
-    lsvm_hard = LinearSVC(C = C_hard, loss = loss_hard, dual = dual_hard, random_state = random_seed, max_iter=10000)
-    lsvm_soft = LinearSVC(C = C_soft, loss = loss_soft, dual = dual_soft, random_state = random_seed, max_iter=10000)
+    lsvm_hard = LinearSVC(C = C_hard, loss = loss_hard, dual = dual_hard, random_state = random_seed, max_iter=20000)
+    lsvm_soft = LinearSVC(C = C_soft, loss = loss_soft, dual = dual_soft, random_state = random_seed, max_iter=20000)
     
     # Train the model
     lsvm_hard.fit(X_train, y_train)
     lsvm_soft.fit(X_train, y_train)
 
-    # Make predictions
-    y_pred_hard = lsvm_hard.predict(X_test)
-    y_pred_soft = lsvm_soft.predict(X_test)
-    
-    # Calculate metrics
-    f1_hard = f1_score(y_test, y_pred_hard)
-    f1_soft = f1_score(y_test, y_pred_soft)
-    precision_hard = precision_score(y_test, y_pred_hard)
-    precision_soft = precision_score(y_test, y_pred_soft)
-    recall_hard = recall_score(y_test, y_pred_hard)
-    recall_soft = recall_score(y_test, y_pred_soft)
-
-    # Plot confusion matrix for hard margin
-    cm_hard = confusion_matrix(y_test, y_pred_hard)
-    plt.figure(figsize=(8, 6))
-    sns.heatmap(cm_hard, annot=True, fmt='d', cmap='Blues', xticklabels=['Negative', 'Positive'], yticklabels=['Negative', 'Positive'])
-    plt.title(f'Confusion Matrix - Hard Margin - {data_type}')
-    plt.xlabel('Predicted')
-    plt.ylabel('Actual')
-    plt.show()
-
-    # Plot confusion matrix for soft margin
-    cm_soft = confusion_matrix(y_test, y_pred_soft)
-    plt.figure(figsize=(8, 6))
-    sns.heatmap(cm_soft, annot=True, fmt='d', cmap='Blues', xticklabels=['Negative', 'Positive'], yticklabels=['Negative', 'Positive'])
-    plt.title(f'Confusion Matrix - Soft Margin - {data_type}')
-    plt.xlabel('Predicted')
-    plt.ylabel('Actual')
-    plt.show()
+    # Evaluace model performance
+    lsvm_hard_performance = performances(lsvm_hard, X_test, y_test, f'Linear SVM HARD - {data_type}')
+    lsvm_soft_performance = performances(lsvm_soft, X_test, y_test, f'Linear SVM SOFT - {data_type}')
 
     if (data_type == 'PCA'):
         
@@ -99,18 +74,6 @@ def lsvm_training(X_train, y_train, X_test, y_test, data_type=''):
         line_hard = HyperplaneR2(w_hard, b_hard)
         line_soft = HyperplaneR2(w_soft, b_soft)
 
-        """
-        # Plot hyperplanes
-        plt.figure(figsize=(8, 6))
-        plt.scatter(X_test.iloc[:, 0], X_test.iloc[:, 1], c=y_test, cmap='coolwarm', edgecolors='k', s=20)
-        plt.title(f'Hyperplanes - Hard Margin - {data_type}')
-        plt.xlabel('Feature 1')
-        plt.ylabel('Feature 2')
-        plt.plot(line_hard.line_x2, line_hard.line_x2, color='blue', label='Hard Margin Hyperplane')
-        plt.plot(line_soft.line_x2, line_soft.line_x2, color='red', label='Soft Margin Hyperplane')
-        plt.legend()
-        plt.show()
-        """
         # Plot hyperplanes
         fig, axs = plt.subplots(1, 2, figsize=(12, 6))
         axs[0].scatter(X_test.iloc[:, 0], X_test.iloc[:, 1], c=y_test, cmap='coolwarm', edgecolors='k', s=20)
@@ -123,9 +86,10 @@ def lsvm_training(X_train, y_train, X_test, y_test, data_type=''):
         axs[1].plot([-5., 7.], [line_soft.margin_x2(-5.)[0], line_soft.margin_x2(7.)[0]], 'r--', label = 'Margin border 1')
         axs[1].plot([-5., 7.], [line_soft.margin_x2(-5.)[1], line_soft.margin_x2(7.)[1]], 'r--', label = 'Margin border 2')
         axs[1].set_title('SVM PCA SOFT')
+        plt.show()
         
     # Return metrics
-    return f1_hard, f1_soft, precision_hard, precision_soft, recall_hard, recall_soft
+    return lsvm_hard_performance, lsvm_soft_performance
 
 def ksvm_train(X_train, y_train, X_test, y_test, kernel_type, C = 1, data_type=''):
     # Train the SVM model with a specified kernel and evaluate its performance.
@@ -147,45 +111,45 @@ def ksvm_train(X_train, y_train, X_test, y_test, kernel_type, C = 1, data_type='
     # Train the model
     svm_model.fit(X_train, y_train)
 
-    # Make predictions
-    y_pred = svm_model.predict(X_test)
-
-    # Calculate metrics
-    f1 = f1_score(y_test, y_pred)
-    precision = precision_score(y_test, y_pred)
-    recall = recall_score(y_test, y_pred)
-
-    """
-    # Plot confusion matrix
-    cm = confusion_matrix(y_test, y_pred)
-    plt.figure(figsize=(8, 6))
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Negative', 'Positive'], yticklabels=['Negative', 'Positive'])
-    plt.title(f'Confusion Matrix - {kernel_type} Kernel - C: {C} - {data_type}')
-    plt.xlabel('Predicted')
-    plt.ylabel('Actual')
-    plt.show()
-    """
+    # Evaluate model performance
+    svm_performance = performances(svm_model, X_test, y_test, f'Kernel SVM - {kernel_type} - {data_type}')
 
     # Return metrics
-    return f1, precision, recall
+    return svm_performance
 
 ####################
 # EVALUATE THE MODEL
 ####################
-
 # Linear SVM with hard and soft margins
-results = {
+lsvm_results = {
     'Scaled': lsvm_training(df_train_scal, y_train, df_test_scal, y_test, 'Scaled'),
     'PCA': lsvm_training(df_train_PCA, y_train, df_test_PCA, y_test, 'PCA'),
     'No Features': lsvm_training(df_train_noFeat, y_train, df_test_noFeat, y_test, 'No Features'),
     'No Smoking': lsvm_training(df_train_noSmok, y_train, df_test_noSmok, y_test, 'No Smoking'),
 }
+
 # Display Linear SVM results
-print('Linear SVM Results:')
-results_df = pd.DataFrame(results, index=['F1 Score Hard', 'F1 Score Soft', 'Precision Hard', 'Precision Soft', 'Recall Hard', 'Recall Soft']).T
-results_df.index.name = 'Linear SVM'
-results_df.reset_index(inplace=True)
-display(results_df)
+print('Linear SVM Results (Hard and Soft margins):')
+for key, (hard_perf, soft_perf) in lsvm_results.items():
+    # Display metrics for hard margin
+    display(hard_perf[0])
+    # Display confusion matrix for hard margin
+    plt.figure()
+    sns.heatmap(hard_perf[1], annot=True, fmt='d', cmap='Blues', xticklabels=['Negative', 'Positive'], yticklabels=['Negative', 'Positive'])
+    plt.title(f'Confusion Matrix - Hard Margin - {key}')
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual')
+    plt.show()
+
+    # Display metrics for soft margin
+    display(soft_perf[0])
+    # Display confusion matrix for soft margin
+    plt.figure()
+    sns.heatmap(soft_perf[1], annot=True, fmt='d', cmap='Blues', xticklabels=['Negative', 'Positive'], yticklabels=['Negative', 'Positive'])
+    plt.title(f'Confusion Matrix - Hard Margin - {key}')
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual')
+    plt.show()
 
 # Kernel SVM
 C = 120
@@ -195,11 +159,9 @@ kernel_results = {
     'Polynomial': ksvm_train(df_train_scal, y_train, df_test_scal, y_test, 'poly', C),
 }
 # Display kernel results
-print(f'Different Kernels Results on Scaled Data with C = {C}:')
-kernel_results_df = pd.DataFrame(kernel_results, index=['F1 Score', 'Precision', 'Recall']).T
-kernel_results_df.index.name = 'Kernel SVM'
-kernel_results_df.reset_index(inplace=True)
-display(kernel_results_df)
+print(f'Kernel SVM Results with C = {C}:')
+for key in kernel_results.keys():
+    display(kernel_results[key][0])
 
 # Trying best (rbf) on all data types
 rbf_kernel_results_all = {
@@ -209,19 +171,25 @@ rbf_kernel_results_all = {
     'No Smoking': ksvm_train(df_train_noSmok, y_train, df_test_noSmok, y_test, 'rbf', C, 'No Smoking'),
 }
 # Display kernel results
-print(f'RBF Kernel Results on all dataset preprocessings with C = {C}:')
-rbf_kernel_results_all_df = pd.DataFrame(rbf_kernel_results_all, index=['F1 Score', 'Precision', 'Recall']).T
-rbf_kernel_results_all_df.index.name = 'Kernel rbf SVM'
-rbf_kernel_results_all_df.reset_index(inplace=True)
-display(rbf_kernel_results_all_df)
+print(f'Kernel rbf SVM Results with C = {C} on all data types:')
+for key in rbf_kernel_results_all.keys():
+    # Display metrics
+    display(rbf_kernel_results_all[key][0])
+    # Display confusion matrix
+    plt.figure()
+    sns.heatmap(rbf_kernel_results_all[key][1], annot=True, fmt='d', cmap='Blues', xticklabels=['Negative', 'Positive'], yticklabels=['Negative', 'Positive'])
+    plt.title(f'Confusion Matrix - Hard Margin - {key}')
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual')
+    plt.show()
 
 # Perform kernel SVM with 'rbf' kernel on df_train_noSmok for multiple C values
 C_values = np.linspace(1, 200, 50)
 accuracies = []
 # Loop through different C values
 for C in C_values:
-    _, precision, _ = ksvm_train(df_train_noSmok, y_train, df_test_noSmok, y_test, 'rbf', C, 'No Smoking')
-    accuracies.append(precision)
+    metrics = ksvm_train(df_train_noSmok, y_train, df_test_noSmok, y_test, 'rbf', C, 'No Smoking')
+    accuracies.append(metrics[0]['F1'])
 # Plot accuracy with respect to C
 plt.figure(figsize=(10, 6))
 plt.plot(C_values, accuracies, marker='o', linestyle='-', color='b')
@@ -235,8 +203,8 @@ plt.show()
 accuracies = []
 # Loop through different C values
 for C in C_values:
-    _, precision, _ = ksvm_train(df_train_noFeat, y_train, df_test_noFeat, y_test, 'rbf', C, 'No Feature')
-    accuracies.append(precision)
+    metrics = ksvm_train(df_train_noFeat, y_train, df_test_noFeat, y_test, 'rbf', C, 'No Feature')
+    accuracies.append(metrics[0]['F1'])
 # Plot accuracy with respect to C
 plt.figure(figsize=(10, 6))
 plt.plot(C_values, accuracies, marker='o', linestyle='-', color='b')
@@ -250,8 +218,8 @@ plt.show()
 accuracies = []
 # Loop through different C values
 for C in C_values:
-    _, precision, _ = ksvm_train(df_train_scal, y_train, df_test_scal, y_test, 'rbf', C, 'Scaled')
-    accuracies.append(precision)
+    metrics = ksvm_train(df_train_scal, y_train, df_test_scal, y_test, 'rbf', C, 'Scaled')
+    accuracies.append(metrics[0]['F1'])
 # Plot accuracy with respect to C
 plt.figure(figsize=(10, 6))
 plt.plot(C_values, accuracies, marker='o', linestyle='-', color='b')
@@ -265,67 +233,13 @@ plt.show()
 accuracies = []
 # Loop through different C values
 for C in C_values:
-    _, precision, _ = ksvm_train(df_train_PCA, y_train, df_test_PCA, y_test, 'rbf', C, 'PCA')
-    accuracies.append(precision)
+    metrics = ksvm_train(df_train_PCA, y_train, df_test_PCA, y_test, 'rbf', C, 'PCA')
+    accuracies.append(metrics[0]['F1'])
 # Plot accuracy with respect to C
 plt.figure(figsize=(10, 6))
 plt.plot(C_values, accuracies, marker='o', linestyle='-', color='b')
 plt.title('Accuracy vs C for RBF Kernel SVM (PCA Data)')
 plt.xlabel('C Value')
 plt.ylabel('Precision')
-plt.grid(True)
-plt.show()
-
-
-
-# Perform kernel SVM with 'rbf' kernel on df_train_noSmok for multiple C values (F1 Score)
-f1_scores = []
-for C in C_values:
-    f1, _, _ = ksvm_train(df_train_noSmok, y_train, df_test_noSmok, y_test, 'rbf', C, 'No Smoking')
-    f1_scores.append(f1)
-plt.figure(figsize=(10, 6))
-plt.plot(C_values, f1_scores, marker='o', linestyle='-', color='g')
-plt.title('F1 Score vs C for RBF Kernel SVM (No Smoking Data)')
-plt.xlabel('C Value')
-plt.ylabel('F1 Score')
-plt.grid(True)
-plt.show()
-
-# Perform kernel SVM with 'rbf' kernel on df_train_noFeat for multiple C values (F1 Score)
-f1_scores = []
-for C in C_values:
-    f1, _, _ = ksvm_train(df_train_noFeat, y_train, df_test_noFeat, y_test, 'rbf', C, 'No Feature')
-    f1_scores.append(f1)
-plt.figure(figsize=(10, 6))
-plt.plot(C_values, f1_scores, marker='o', linestyle='-', color='g')
-plt.title('F1 Score vs C for RBF Kernel SVM (No Feature Data)')
-plt.xlabel('C Value')
-plt.ylabel('F1 Score')
-plt.grid(True)
-plt.show()
-
-# Perform kernel SVM with 'rbf' kernel on df_train_scal for multiple C values (F1 Score)
-f1_scores = []
-for C in C_values:
-    f1, _, _ = ksvm_train(df_train_scal, y_train, df_test_scal, y_test, 'rbf', C, 'Scaled')
-    f1_scores.append(f1)
-plt.figure(figsize=(10, 6))
-plt.plot(C_values, f1_scores, marker='o', linestyle='-', color='g')
-plt.title('F1 Score vs C for RBF Kernel SVM (Scaled Data)')
-plt.xlabel('C Value')
-plt.ylabel('F1 Score')
-plt.grid(True)
-plt.show()
-
-# Perform kernel SVM with 'rbf' kernel on df_train_PCA for multiple C values (F1 Score)
-f1_scores = []
-for C in C_values:
-    f1, _, _ = ksvm_train(df_train_PCA, y_train, df_test_PCA, y_test, 'rbf', C, 'PCA')
-    f1_scores.append(f1)
-plt.figure(figsize=(10, 6))
-plt.plot(C_values, f1_scores, marker='o', linestyle='-', color='g')
-plt.title('F1 Score vs C for RBF Kernel SVM (PCA Data)')
-plt.xlabel('C Value')
-plt.ylabel('F1 Score')
 plt.grid(True)
 plt.show()
