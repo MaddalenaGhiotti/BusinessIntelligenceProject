@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from imblearn.over_sampling import SMOTE
 from sklearn.decomposition import PCA
 
 def combination_features(df, operation_list):
@@ -37,7 +38,7 @@ def combination_features(df, operation_list):
 
     return df_result
 
-def preprocessing_diabetes_v2(df_train, df_test, option='', augment=False):
+def preprocessing_diabetes_v2(df_train, df_test, option='', augment=False, oversample=False):
     # Remove Errors
     df_train_filter = df_train[(df_train['age'] > 0) & (df_train['bmi'] < 70)].copy().reset_index(drop=True)
     df_test_filter = df_test.loc[(df_test['age'] > 0) & (df_test['bmi'] < 70)].copy().reset_index(drop=True)
@@ -67,6 +68,11 @@ def preprocessing_diabetes_v2(df_train, df_test, option='', augment=False):
     y_train = df_train_oh["diabetes"] 
     y_test = df_test_oh["diabetes"]
 
+    # Oversample
+    if oversample:
+        smote = SMOTE()
+        X_train, y_train = smote.fit_resample(X_train, y_train)
+
     # Dividing real vs other columns
     binary_columns = X_train.columns[X_train.map(lambda x: x in [0, 1]).all()]
     numeric_columns = X_train.drop(columns=binary_columns).columns
@@ -82,14 +88,22 @@ def preprocessing_diabetes_v2(df_train, df_test, option='', augment=False):
         numeric_columns = X_train_numeric.columns
         X_train_cat = combination_features(X_train_cat, ['addition', 'subtraction'])
         X_test_cat = combination_features(X_test_cat, ['addition', 'subtraction'])
+        categorical_columns = X_train_cat.columns
+
+        # Scaling augmented categorical data
+        mmscaler = MinMaxScaler()
+        X_train_cat_scaled = mmscaler.fit_transform(X_train_cat)
+        X_test_cat_scaled = mmscaler.transform(X_test_cat)
+        X_train_cat = pd.DataFrame(X_train_cat_scaled, columns=categorical_columns)
+        X_test_cat = pd.DataFrame(X_test_cat_scaled, columns=categorical_columns)
 
     # Standardization
     scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train_numeric)
-    X_test_scaled = scaler.transform(X_test_numeric)
-    X_train_combined = pd.concat([pd.DataFrame(X_train_scaled, columns=numeric_columns), 
+    X_train_num_scaled = scaler.fit_transform(X_train_numeric)
+    X_test_num_scaled = scaler.transform(X_test_numeric)
+    X_train_combined = pd.concat([pd.DataFrame(X_train_num_scaled, columns=numeric_columns), 
                                   X_train_cat], axis=1)
-    X_test_combined = pd.concat([pd.DataFrame(X_test_scaled, columns=numeric_columns), 
+    X_test_combined = pd.concat([pd.DataFrame(X_test_num_scaled, columns=numeric_columns), 
                                  X_test_cat], axis=1)
     
     if option == 'PCA':    
@@ -99,10 +113,9 @@ def preprocessing_diabetes_v2(df_train, df_test, option='', augment=False):
         X_test_pca = pca.transform(X_test_combined)
 
         # Convert and Export
-        df_train_pca = pd.DataFrame(X_train_pca, 
-                                    columns=[f"PC {i}" for i in range(1, X_train_pca.shape[1]+1)])
-        df_test_pca = pd.DataFrame(X_test_pca,
-                                   columns=[f"PC {i}" for i in range(1, X_test_pca.shape[1]+1)])
+        PCs = [f"PC {i}" for i in range(1, X_train_pca.shape[1]+1)]
+        df_train_pca = pd.DataFrame(X_train_pca, columns=PCs)
+        df_test_pca = pd.DataFrame(X_test_pca, columns=PCs)                                  
         return df_train_pca, df_test_pca, y_train, y_test
     
     else:
