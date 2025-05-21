@@ -4,7 +4,7 @@ import sklearn
 from sklearn import svm
 from sklearn.svm import LinearSVC
 from sklearn.svm import SVC
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.metrics import f1_score, precision_score, recall_score, confusion_matrix, make_scorer
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -17,6 +17,9 @@ from metrics import performances
 
 #import warnings
 #warnings.filterwarnings(action='ignore')
+
+##########################################################################################
+
 ###############
 # FETCHING DATA
 ###############
@@ -33,6 +36,8 @@ df_train_PCA, df_test_PCA, _, _ = preprocessing_diabetes(trainingData, testData,
 #No smoking
 df_train_noSmok = df_train_scal[[col for col in df_train_scal.columns if 'smoking' not in col]]
 df_test_noSmok = df_test_scal[[col for col in df_test_scal.columns if 'smoking' not in col]]
+
+##########################################################################################
 
 ##############
 # TRAINING SVM
@@ -91,8 +96,31 @@ def lsvm_training(X_train, y_train, X_test, y_test, data_type=''):
     # Return metrics
     return lsvm_hard_performance, lsvm_soft_performance
 
-def ksvm_train(X_train, y_train, X_test, y_test, kernel_type, C = 1, data_type=''):
-    # Train the SVM model with a specified kernel and evaluate its performance.
+##########################################################################################
+
+def ksvm_gridsearch(X_train, y_train, hparameters):
+    # Trains the SVM model with a specified kernel and evaluates its performance using GridSearchCV.
+    # SVM initialization
+    svm = SVC()
+    # GridSearch initialization
+    svm_gs = GridSearchCV(estimator=svm,
+                        param_grid=hparameters,
+                        scoring='f1_weighted',
+                        return_train_score=True,
+                        verbose=1)
+        
+    # Run the grid search
+    svm_gs.fit(X_train, y_train)
+
+    #  Save hyperparameters to a DataFrame
+    results = pd.DataFrame(svm_gs.cv_results_)
+
+    return results
+
+##########################################################################################
+
+def ksvm_train(X_train, y_train, X_test, y_test, kernel_type, C = 1, gamma='auto', data_type=''):
+    # Train the SVM model with a specified kernel and evaluate its performance on test.
     # Accepted kernel types: 'rbf', 'poly', 'sigmoid'
 
     # Random seed initialization
@@ -100,11 +128,11 @@ def ksvm_train(X_train, y_train, X_test, y_test, kernel_type, C = 1, data_type='
 
     # Prepare the model
     if kernel_type == 'sigmoid':
-        svm_model = SVC(kernel='sigmoid', C=C, random_state=random_seed)
+        svm_model = SVC(kernel='sigmoid', C=C, gamma=gamma, random_state=random_seed)
     elif kernel_type == 'rbf':
-        svm_model = SVC(kernel='rbf', C=C, random_state=random_seed)
+        svm_model = SVC(kernel='rbf', C=C, gamma=gamma, random_state=random_seed)
     elif kernel_type == 'poly':
-        svm_model = SVC(kernel='poly', C=C, random_state=random_seed)
+        svm_model = SVC(kernel='poly', C=C, gamma=gamma, random_state=random_seed)
     else:
         raise ValueError("Invalid kernel type. Choose 'rbf', 'poly' or 'sigmoid'.")
 
@@ -112,15 +140,20 @@ def ksvm_train(X_train, y_train, X_test, y_test, kernel_type, C = 1, data_type='
     svm_model.fit(X_train, y_train)
 
     # Evaluate model performance
-    svm_performance = performances(svm_model, X_test, y_test, f'Kernel SVM - {kernel_type} - {data_type}')
-
+    svm_performance_train = performances(svm_model, X_train, y_train, f'Train - C = {C} - gamma = {gamma} - {data_type}')
+    svm_performance_test = performances(svm_model, X_test, y_test, f'Test - C = {C} - gamma = {gamma} - {data_type}')
+    svm_performance = (svm_performance_train, svm_performance_test)
     # Return metrics
     return svm_performance
 
-####################
-# EVALUATE THE MODEL
-####################
-# Linear SVM with hard and soft margins
+##########################################################################################
+
+####################################
+# EVALUATE THE MODEL WITH GRIDSEARCH
+####################################
+
+# LINEAR SVM
+# Train Linear SVM with hard and soft margins
 lsvm_results = {
     'Scaled': lsvm_training(df_train_scal, y_train, df_test_scal, y_test, 'Scaled'),
     'PCA': lsvm_training(df_train_PCA, y_train, df_test_PCA, y_test, 'PCA'),
@@ -151,95 +184,90 @@ for key, (hard_perf, soft_perf) in lsvm_results.items():
     plt.ylabel('Actual')
     plt.show()
 
-# Kernel SVM
-C = 120
-kernel_results = {
-    'Sigmoid': ksvm_train(df_train_scal, y_train, df_test_scal, y_test, 'sigmoid', C),
-    'RBF': ksvm_train(df_train_scal, y_train, df_test_scal, y_test, 'rbf', C),
-    'Polynomial': ksvm_train(df_train_scal, y_train, df_test_scal, y_test, 'poly', C),
-}
-# Display kernel results
-print(f'Kernel SVM Results with C = {C}:')
-for key in kernel_results.keys():
-    display(kernel_results[key][0])
+##########################################################################################
 
-# Trying best (rbf) on all data types
+# KERNEL SVM (GRIDSEARCH)
+"""
+# Definizione delle liste di valori tra i quali "scorrere" per gli iper-parametri:
+C_list = [1, 5, 10, 25, 50, 100]
+gamma_list = [1, 0.5, 0.1, 0.01, 'scale', 'auto']
+ker_list = ['rbf', 'sigmoid', 'poly']
+hparameters = {'kernel':ker_list, 'C':C_list, 'gamma':gamma_list}
+
+# Perform grid search for each data type
+hp_results_scal = ksvm_gridsearch(df_train_scal, y_train, hparameters)
+hp_results_scal = hp_results_scal.sort_values(by='mean_test_score', ascending=False)
+hp_results_PCA = ksvm_gridsearch(df_train_PCA, y_train, hparameters)
+hp_results_PCA = hp_results_PCA.sort_values(by='mean_test_score', ascending=False)
+hp_results_noFeat = ksvm_gridsearch(df_train_noFeat, y_train, hparameters)
+hp_results_noFeat = hp_results_noFeat.sort_values(by='mean_test_score', ascending=False)
+hp_results_noSmok = ksvm_gridsearch(df_train_noSmok, y_train, hparameters)
+hp_results_noSmok = hp_results_noSmok.sort_values(by='mean_test_score', ascending=False)
+
+# Displaying the results of the grid search
+print('Grid Search Results:')
+display(hp_results_scal[['params', 'mean_test_score', 'std_test_score']])
+display(hp_results_PCA[['params', 'mean_test_score', 'std_test_score']])
+display(hp_results_noFeat[['params', 'mean_test_score', 'std_test_score']])
+display(hp_results_noSmok[['params', 'mean_test_score', 'std_test_score']])
+"""
+
+##########################################################################################
+
+# KERNEL SVM (GRIDSEARCH) - RBF ONLY
+# Performing GridSearch for the best kernel (rbf)
+C_list = [1, 5, 10, 15, 20, 25, 30, 40, 60, 90]
+gamma_list = [5, 1, 0.5, 0.1, 0.01, 'scale', 'auto']
+ker_list = ['rbf']
+hparameters = {'kernel':ker_list, 'C':C_list, 'gamma':gamma_list}
+
+# Perform grid search for each data type
+hp_rbf_results_scal = ksvm_gridsearch(df_train_scal, y_train, hparameters)
+hp_rbf_results_scal = hp_rbf_results_scal.sort_values(by='mean_test_score', ascending=False)
+hp_rbf_results_PCA = ksvm_gridsearch(df_train_PCA, y_train, hparameters)
+hp_rbf_results_PCA = hp_rbf_results_PCA.sort_values(by='mean_test_score', ascending=False)
+hp_rbf_results_noFeat = ksvm_gridsearch(df_train_noFeat, y_train, hparameters)
+hp_rbf_results_noFeat = hp_rbf_results_noFeat.sort_values(by='mean_test_score', ascending=False)
+hp_rbf_results_noSmok = ksvm_gridsearch(df_train_noSmok, y_train, hparameters)
+hp_rbf_results_noSmok = hp_rbf_results_noSmok.sort_values(by='mean_test_score', ascending=False)
+
+# Displaying the results of the grid search
+print('Grid Search Results:')
+display(hp_rbf_results_scal[['params', 'mean_test_score', 'std_test_score']])
+display(hp_rbf_results_PCA[['params', 'mean_test_score', 'std_test_score']])
+display(hp_rbf_results_noFeat[['params', 'mean_test_score', 'std_test_score']])
+display(hp_rbf_results_noSmok[['params', 'mean_test_score', 'std_test_score']])
+
+##########################################################################################
+
+# TESTING RBF KERNEL WITH BEST PARAMETERS
+# Extracting best parameters from the grid search results
+C_scal = hp_rbf_results_scal.iloc[0]['params']['C']
+gamma_scal = hp_rbf_results_scal.iloc[0]['params']['gamma']
+C_PCA = hp_rbf_results_PCA.iloc[0]['params']['C']
+gamma_PCA = hp_rbf_results_PCA.iloc[0]['params']['gamma']
+C_noFeat = hp_rbf_results_noFeat.iloc[0]['params']['C']
+gamma_noFeat = hp_rbf_results_noFeat.iloc[0]['params']['gamma']
+C_noSmok = hp_rbf_results_noSmok.iloc[0]['params']['C']
+gamma_noSmok = hp_rbf_results_noSmok.iloc[0]['params']['gamma']
+
+# Tesiting best parameters on all data types
 rbf_kernel_results_all = {
-    'Scaled': ksvm_train(df_train_scal, y_train, df_test_scal, y_test, 'rbf', C, 'Scaled'),
-    'PCA': ksvm_train(df_train_PCA, y_train, df_test_PCA, y_test, 'rbf', C, 'PCA'),
-    'No Feature': ksvm_train(df_train_noFeat, y_train, df_test_noFeat, y_test, 'rbf', C, 'No Feature'),
-    'No Smoking': ksvm_train(df_train_noSmok, y_train, df_test_noSmok, y_test, 'rbf', C, 'No Smoking'),
+    'Scaled': ksvm_train(df_train_scal, y_train, df_test_scal, y_test, 'rbf', C_scal, gamma_scal, 'Scaled'),
+    'PCA': ksvm_train(df_train_PCA, y_train, df_test_PCA, y_test, 'rbf', C_PCA, gamma_PCA, 'PCA'),
+    'No Feature': ksvm_train(df_train_noFeat, y_train, df_test_noFeat, y_test, 'rbf', C_noFeat, gamma_noFeat, 'No Feature'),
+    'No Smoking': ksvm_train(df_train_noSmok, y_train, df_test_noSmok, y_test, 'rbf', C_noSmok, gamma_noSmok, 'No Smoking'),
 }
 # Display kernel results
-print(f'Kernel rbf SVM Results with C = {C} on all data types:')
+print(f'Kernel rbf SVM test results on all data types:')
 for key in rbf_kernel_results_all.keys():
     # Display metrics
-    display(rbf_kernel_results_all[key][0])
+    display(rbf_kernel_results_all[key][0][0])
+    display(rbf_kernel_results_all[key][1][0])
     # Display confusion matrix
     plt.figure()
-    sns.heatmap(rbf_kernel_results_all[key][1], annot=True, fmt='d', cmap='Blues', xticklabels=['Negative', 'Positive'], yticklabels=['Negative', 'Positive'])
+    sns.heatmap(rbf_kernel_results_all[key][1][1], annot=True, fmt='d', cmap='Blues', xticklabels=['Negative', 'Positive'], yticklabels=['Negative', 'Positive'])
     plt.title(f'Confusion Matrix - Kernel rbf - {key}')
     plt.xlabel('Predicted')
     plt.ylabel('Actual')
     plt.show()
-
-# Perform kernel SVM with 'rbf' kernel on df_train_noSmok for multiple C values
-C_values = np.linspace(1, 200, 50)
-accuracies = []
-# Loop through different C values
-for C in C_values:
-    metrics = ksvm_train(df_train_noSmok, y_train, df_test_noSmok, y_test, 'rbf', C, 'No Smoking')
-    accuracies.append(metrics[0]['F1'])
-# Plot accuracy with respect to C
-plt.figure(figsize=(10, 6))
-plt.plot(C_values, accuracies, marker='o', linestyle='-', color='b')
-plt.title('Accuracy vs C for RBF Kernel SVM (No Smoking Data)')
-plt.xlabel('C Value')
-plt.ylabel('Precision')
-plt.grid(True)
-plt.show()
-
-# Perform kernel SVM with 'rbf' kernel on df_train_noFeat for multiple C values
-accuracies = []
-# Loop through different C values
-for C in C_values:
-    metrics = ksvm_train(df_train_noFeat, y_train, df_test_noFeat, y_test, 'rbf', C, 'No Feature')
-    accuracies.append(metrics[0]['F1'])
-# Plot accuracy with respect to C
-plt.figure(figsize=(10, 6))
-plt.plot(C_values, accuracies, marker='o', linestyle='-', color='b')
-plt.title('Accuracy vs C for RBF Kernel SVM (No Feature Data)')
-plt.xlabel('C Value')
-plt.ylabel('Precision')
-plt.grid(True)
-plt.show()
-
-# Perform kernel SVM with 'rbf' kernel on df_train_scal for multiple C values
-accuracies = []
-# Loop through different C values
-for C in C_values:
-    metrics = ksvm_train(df_train_scal, y_train, df_test_scal, y_test, 'rbf', C, 'Scaled')
-    accuracies.append(metrics[0]['F1'])
-# Plot accuracy with respect to C
-plt.figure(figsize=(10, 6))
-plt.plot(C_values, accuracies, marker='o', linestyle='-', color='b')
-plt.title('Accuracy vs C for RBF Kernel SVM (Scaled Data)')
-plt.xlabel('C Value')
-plt.ylabel('Precision')
-plt.grid(True)
-plt.show()
-
-# Perform kernel SVM with 'rbf' kernel on df_train_PCA for multiple C values
-accuracies = []
-# Loop through different C values
-for C in C_values:
-    metrics = ksvm_train(df_train_PCA, y_train, df_test_PCA, y_test, 'rbf', C, 'PCA')
-    accuracies.append(metrics[0]['F1'])
-# Plot accuracy with respect to C
-plt.figure(figsize=(10, 6))
-plt.plot(C_values, accuracies, marker='o', linestyle='-', color='b')
-plt.title('Accuracy vs C for RBF Kernel SVM (PCA Data)')
-plt.xlabel('C Value')
-plt.ylabel('Precision')
-plt.grid(True)
-plt.show()
