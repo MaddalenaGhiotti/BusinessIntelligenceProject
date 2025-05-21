@@ -33,9 +33,9 @@ def performances(model, data, y_true, title=None):
     stop = time.time()
     totalTime = stop - start
     acc = model.score(data, y_true)
-    prec = precision_score(y_true, y_pred, average='weighted')
-    rec = recall_score(y_true, y_pred, average='weighted')
-    f1 = f1_score(y_true, y_pred, average='weighted')
+    prec = precision_score(y_true, y_pred, average='binary')
+    rec = recall_score(y_true, y_pred, average='binary')
+    f1 = f1_score(y_true, y_pred, average='binary')
     df = pd.DataFrame({'Accuracy': [acc], 
                         'Precision': [prec ], 
                         'Recall': [rec ],
@@ -59,7 +59,7 @@ def random_forest_tune(X_train, y_train, X_test, y_test, data_type='', verbose=F
 
     # GridSearchCV for hyperparameter tuning
     grid_search = GridSearchCV(estimator=rf_model, param_grid=param_grid, 
-                               cv=5, verbose=verbose, n_jobs=-1, scoring='accuracy')
+                               cv=10, verbose=verbose, n_jobs=-1, scoring='f1')
 
     # Fit the model
     grid_search.fit(X_train, y_train)
