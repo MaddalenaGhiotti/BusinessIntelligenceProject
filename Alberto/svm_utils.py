@@ -4,12 +4,12 @@ import sklearn
 from sklearn import svm
 from sklearn.svm import LinearSVC
 from sklearn.svm import SVC
-from sklearn.model_selection import GridSearchCV, train_test_split
+from sklearn.model_selection import GridSearchCV, train_test_split, KFold
 from sklearn.metrics import f1_score, precision_score, recall_score, confusion_matrix, make_scorer
 import matplotlib.pyplot as plt
 #from IPython.display import display
 import sys
-sys.path.insert(1, '/../Data')
+sys.path.insert(1, '../Data')
 from linear_r2 import HyperplaneR2
 from metrics import performances
 
@@ -83,7 +83,7 @@ def ksvm_gridsearch(X_train, y_train, hparameters):
     svm_gs = GridSearchCV(estimator=svm,
                         param_grid=hparameters,
                         scoring='f1_weighted',
-                        cv=10,
+                        cv=KFold(10, random_state=random_seed, shuffle=True),
                         return_train_score=True,
                         verbose=1)
         
