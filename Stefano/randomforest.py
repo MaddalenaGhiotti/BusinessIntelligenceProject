@@ -8,6 +8,10 @@ import seaborn as sns
 from IPython.display import display
 import time
 import sys
+
+import os
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 sys.path.insert(1, '../Data')
 from preprocessing import preprocessing_diabetes
 from preprocessing_v2 import preprocessing_diabetes_v2
