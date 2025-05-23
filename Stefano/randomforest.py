@@ -8,12 +8,13 @@ import seaborn as sns
 from IPython.display import display
 import time
 import sys
-sys.path.insert(1, '/home/stekap/Scrivania/BusinessIntelligence/BusinessIntelligenceProject/Data')
+sys.path.insert(1, '../Data')
 from preprocessing import preprocessing_diabetes
+from preprocessing_v2 import preprocessing_diabetes_v2
 
 # Importing the dataset
-trainingData = pd.read_csv('/home/stekap/Scrivania/BusinessIntelligence/BusinessIntelligenceProject/Data/diabetes_train.csv')
-testData = pd.read_csv('/home/stekap/Scrivania/BusinessIntelligence/BusinessIntelligenceProject/Data/diabetes_test.csv')
+trainingData = pd.read_csv('../Data/diabetes_train.csv')
+testData = pd.read_csv('../Data/diabetes_test.csv')
 
 # Preprocessing the data
 df_train_scal, df_test_scal, y_train, y_test = preprocessing_diabetes(trainingData, testData)
