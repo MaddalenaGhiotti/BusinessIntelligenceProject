@@ -58,8 +58,8 @@ class HyperplaneR2:
             plus_X2 = - (self.w[0] * X1 + self.b - 1) / self.w[1]
             minus_X2 = - (self.w[0] * X1 + self.b + 1) / self.w[1]
         else:
-            plus_X2 = - (self.w[0] * X1 + self.b - 1) / (np.sign(w[1]) * 1e-7)
-            minus_X2 = - (self.w[0] * X1 + self.b + 1) / (np.sign(w[1]) * 1e-7)
+            plus_X2 = - (self.w[0] * X1 + self.b - 1) / (np.sign(self.w[1]) * 1e-7)
+            minus_X2 = - (self.w[0] * X1 + self.b + 1) / (np.sign(self.w[1]) * 1e-7)
         
         return plus_X2, minus_X2
 
