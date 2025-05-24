@@ -1,7 +1,10 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+
 import os
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 import seaborn as sns
 
 ################
@@ -61,6 +64,7 @@ plt.xlabel("Smoking History")
 plt.ylabel("Age")
 plt.xticks(rotation=45)
 plt.show()
+
 # Plot histogram of smoking_history
 plt.figure(figsize=(8, 5))
 sns.histplot(data=test_data, x='smoking_history', kde=False, bins=10, color='green')
