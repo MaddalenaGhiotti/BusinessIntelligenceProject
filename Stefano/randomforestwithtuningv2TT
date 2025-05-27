@@ -20,10 +20,10 @@ from preprocessing_v2 import preprocessing_diabetes_v2
 trainingData = pd.read_csv('../Data/diabetes_train.csv')
 testData = pd.read_csv('../Data/diabetes_test.csv')
 
-# Preprocessing the data
-df_train_scal, df_test_scal, y_train, y_test = preprocessing_diabetes(trainingData, testData)
-df_train_noFeat, df_test_noFeat, _, _ = preprocessing_diabetes(trainingData, testData, option='Delete')
-df_train_PCA, df_test_PCA, _, _ = preprocessing_diabetes(trainingData, testData, option='PCA')
+# Preprocessing the data (v2 oversample=True,augment=True)
+df_train_scal, df_test_scal, y_train, y_test = preprocessing_diabetes_v2(trainingData, testData,oversample=True,augment=True)
+df_train_noFeat, df_test_noFeat, _, _ = preprocessing_diabetes_v2(trainingData, testData, option='Delete',oversample=True,augment=True)
+df_train_PCA, df_test_PCA, _, _ = preprocessing_diabetes_v2(trainingData, testData, option='PCA',oversample=True,augment=True)
 
 # No smoking
 df_train_noSmok = df_train_scal[[col for col in df_train_scal.columns if 'smoking' not in col]]
@@ -155,4 +155,3 @@ plt.title('Best Test F1 Score by Data Variant (Hyperparameter Tuning)')
 plt.xlabel('Data Variant')
 plt.ylabel('Test F1 Score')
 plt.show()
-
