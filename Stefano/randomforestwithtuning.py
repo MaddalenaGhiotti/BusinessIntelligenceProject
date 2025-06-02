@@ -8,10 +8,13 @@ import seaborn as sns
 import time
 from IPython.display import display
 import sys
+<<<<<<< HEAD
+=======
 
 import os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+>>>>>>> b67ac48cef78749175c43186daf99423e52de7b8
 sys.path.insert(1, '../Data')
 from preprocessing import preprocessing_diabetes
 from preprocessing_v2 import preprocessing_diabetes_v2
