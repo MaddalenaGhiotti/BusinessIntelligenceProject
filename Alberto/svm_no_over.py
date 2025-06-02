@@ -4,7 +4,6 @@ import seaborn as sns
 from IPython.display import display
 import sys
 sys.path.insert(1, '../Data')
-#from preprocessing import preprocessing_diabetes
 from preprocessing import preprocessing_diabetes
 from svm_utils import lsvm_training, ksvm_gridsearch, ksvm_train
 
@@ -67,7 +66,7 @@ for key, (hard_perf, soft_perf) in lsvm_results.items():
 
 ##########################################################################################
 
-# KERNEL SVM (GRIDSEARCH)
+# KERNEL SVM (GRIDSEARCH) - ALL KERNELS
 """
 # Definizione delle liste di valori tra i quali "scorrere" per gli iper-parametri:
 C_list = [1, 5, 10, 25, 50, 100]

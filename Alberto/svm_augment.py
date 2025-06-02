@@ -4,7 +4,7 @@ import seaborn as sns
 from IPython.display import display
 import sys
 sys.path.insert(1, '../Data')
-from preprocessing_v2 import preprocessing_diabetes_v2
+from preprocessing_v3 import preprocessing_diabetes_v3
 from svm_utils import lsvm_training, ksvm_gridsearch, ksvm_train
 import random
 
@@ -21,13 +21,10 @@ trainingData = pd.read_csv('../Data/diabetes_train.csv')
 testData = pd.read_csv('../Data/diabetes_test.csv')
 
 # Preprocessing the data (with oversample)
-df_train_scal, df_test_scal, y_train, y_test = preprocessing_diabetes_v2(trainingData, testData, oversample=True)
-df_train_noFeat, df_test_noFeat, _, _ = preprocessing_diabetes_v2(trainingData, testData, option='Delete', oversample=True) 
-df_train_PCA, df_test_PCA, _, _ = preprocessing_diabetes_v2(trainingData, testData, option='PCA', oversample=True)
-
-#No smoking
-df_train_noSmok = df_train_scal[[col for col in df_train_scal.columns if 'smoking' not in col]]
-df_test_noSmok = df_test_scal[[col for col in df_test_scal.columns if 'smoking' not in col]]
+df_train_scal, df_test_scal, y_train, y_test = preprocessing_diabetes_v3(trainingData, testData, augment=True, oversample=True)
+df_train_noFeat, df_test_noFeat, _, _ = preprocessing_diabetes_v3(trainingData, testData, option='Delete', augment=True, oversample=True) 
+df_train_PCA, df_test_PCA, _, _ = preprocessing_diabetes_v3(trainingData, testData, option='PCA', augment=True, oversample=True)
+df_train_noSmok, df_test_noSmok, _, _ = preprocessing_diabetes_v3(trainingData, testData, augment=True, oversample=True, delete_smoking=True)
 
 ##########################################################################################
 

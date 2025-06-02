@@ -104,8 +104,20 @@ plt.show()
 
 # Bubble plot of BMI vs Age with Diabetes as size
 plt.figure(figsize=(10, 6))
-bubble_sizes = train_data['diabetes'] * 100  # Scale diabetes values for bubble size
-sns.scatterplot(data=train_data, x='bmi', y='age', size=bubble_sizes, sizes=(20, 200), hue='diabetes', palette="coolwarm", alpha=0.6)
+# Use diabetes directly for size, but map to fixed sizes for legend clarity
+size_map = {0: 40, 1: 200}
+sizes = train_data['diabetes'].map(size_map)
+sns.scatterplot(
+    data=train_data,
+    x='bmi',
+    y='age',
+    size='diabetes',
+    sizes=size_map,
+    hue='diabetes',
+    palette="Spectral",
+    alpha=0.6,
+    legend='full'
+)
 plt.title("Bubble Plot of BMI vs Age with Diabetes")
 plt.xlabel("BMI")
 plt.ylabel("Age")

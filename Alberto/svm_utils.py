@@ -41,7 +41,7 @@ def lsvm_training(X_train, y_train, X_test, y_test, data_type=''):
     # Evaluace model performance
     lsvm_hard_performance = performances(lsvm_hard, X_test, y_test, f'Linear SVM HARD - {data_type}')
     lsvm_soft_performance = performances(lsvm_soft, X_test, y_test, f'Linear SVM SOFT - {data_type}')
-
+    """
     if (data_type == 'PCA'):
         
         # Hyperplane coefficients
@@ -67,7 +67,7 @@ def lsvm_training(X_train, y_train, X_test, y_test, data_type=''):
         axs[1].plot([-5., 7.], [line_soft.margin_x2(-5.)[1], line_soft.margin_x2(7.)[1]], 'r--', label = 'Margin border 2')
         axs[1].set_title('SVM PCA SOFT')
         plt.show()
-        
+    """
     # Return metrics
     return lsvm_hard_performance, lsvm_soft_performance
 
