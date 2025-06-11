@@ -1,0 +1,197 @@
+import pandas as pd
+import numpy as np
+import sklearn
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.metrics import f1_score, precision_score, recall_score, confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
+import time
+from IPython.display import display
+import sys
+
+import os
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+sys.path.insert(1, '../Data')
+from preprocessing_v3 import preprocessing_diabetes_v3,combination_features
+
+
+# Importing the dataset
+trainingData = pd.read_csv('../Data/diabetes_train.csv')
+testData = pd.read_csv('../Data/diabetes_test.csv')
+
+# Preprocessing the data (v3 oversample=True,augment=False)
+df_train_scal, df_test_scal, y_train, y_test = preprocessing_diabetes_v3(trainingData, testData,oversample=True,augment=False)
+df_train_noFeat, df_test_noFeat, _, _ = preprocessing_diabetes_v3(trainingData, testData, option='Delete',oversample=True,augment=False)
+df_train_PCA, df_test_PCA, _, _ = preprocessing_diabetes_v3(trainingData, testData, option='PCA',oversample=True,augment=False)
+
+# No smoking
+df_train_noSmok = df_train_scal[[col for col in df_train_scal.columns if 'smoking' not in col]]
+df_test_noSmok = df_test_scal[[col for col in df_test_scal.columns if 'smoking' not in col]]
+
+from sklearn.ensemble import RandomForestClassifier
+
+def performances(model, X_train, y_train, X_test, y_test, title=None):
+    # Measure training time
+    start_train = time.time()
+    model.fit(X_train, y_train)  # Fit the model to the training data
+    stop_train = time.time()
+    train_time = stop_train - start_train
+
+    # Measure testing time
+    start_test = time.time()
+    y_pred = model.predict(X_test)
+    stop_test = time.time()
+    test_time = stop_test - start_test
+
+    # Calculate other performance metrics
+    acc = model.score(X_test, y_test)
+    prec = precision_score(y_test, y_pred, average='binary')
+    rec = recall_score(y_test, y_pred, average='binary')
+    f1 = f1_score(y_test, y_pred, average='binary')
+
+    # Create a DataFrame for performance metrics
+    df = pd.DataFrame({
+        'Accuracy': [acc], 
+        'Precision': [prec],
+        'Recall': [rec],
+        'F1': [f1],
+        'Train Time': [train_time], 
+        'Test Time': [test_time]
+    }, index=[title])
+    
+    # Confusion matrix
+    cmat = pd.DataFrame(confusion_matrix(y_test, y_pred, labels=model.classes_))
+    
+    return df, cmat, train_time, test_time
+
+# Function for hyperparameter tuning with GridSearchCV and capturing times
+def random_forest_tune(X_train, y_train, X_test, y_test, data_type='', verbose=False):
+    # Random Forest Model
+    rf_model = RandomForestClassifier(random_state=20000131)
+
+    # Define the parameter grid (removed max_features)
+    param_grid = {
+        'n_estimators': [50, 100, 200, 300],
+        'max_depth': [None, 10, 20, 30],
+        'min_samples_split': [2, 5, 10],
+        'min_samples_leaf': [1, 2, 4]
+    }
+
+    # GridSearchCV for hyperparameter tuning
+    grid_search = GridSearchCV(estimator=rf_model, param_grid=param_grid, 
+                               cv=10, verbose=verbose, n_jobs=-1, scoring='f1')
+
+    # Fit the model
+    grid_search.fit(X_train, y_train)
+
+    # Best parameters and best model
+    best_params = grid_search.best_params_
+    best_model = grid_search.best_estimator_
+
+    # Get performance metrics on the test set
+    y_train_pred = best_model.predict(X_train)
+    y_test_pred = best_model.predict(X_test)
+
+    # Train metrics
+    train_f1 = f1_score(y_train, y_train_pred)
+    train_precision = precision_score(y_train, y_train_pred)
+    train_recall = recall_score(y_train, y_train_pred)
+
+    # Test metrics
+    test_f1 = f1_score(y_test, y_test_pred)
+    test_precision = precision_score(y_test, y_test_pred)
+    test_recall = recall_score(y_test, y_test_pred)
+
+    # Performance summary
+    perf_df, cm, train_time, test_time = performances(best_model, X_train, y_train, X_test, y_test, title=f'{data_type} (Best Model)')
+    
+    return best_params, best_model, {
+        'Train F1': train_f1,
+        'Train Precision': train_precision,
+        'Train Recall': train_recall,
+        'Test F1': test_f1,
+        'Test Precision': test_precision,
+        'Test Recall': test_recall,
+        'Train Time': train_time,
+        'Test Time': test_time,
+        'Performance Summary': perf_df,
+        'Confusion Matrix': cm
+    }
+
+# Hyperparameter tuning for different data variants
+data_variants = {
+    'Scaled': (df_train_scal, df_test_scal),
+    'PCA': (df_train_PCA, df_test_PCA),
+    'No Features': (df_train_noFeat, df_test_noFeat),
+    'No Smoking': (df_train_noSmok, df_test_noSmok),
+}
+
+best_results = {}
+
+for name, (X_train, X_test) in data_variants.items():
+    best_params, best_model, metrics = random_forest_tune(X_train, y_train, X_test, y_test, data_type=name, verbose=False)
+    
+    best_results[name] = {
+        'Best Parameters': best_params,
+        'Best Model': best_model,
+        **metrics
+    }
+
+# Format results into a DataFrame for easier display
+best_results_df = pd.DataFrame(best_results).T
+best_results_df.index.name = 'Data Variant'
+best_results_df.reset_index(inplace=True)
+display(best_results_df)
+
+# Optional: Plot the performance summary, confusion matrix, etc.
+for name, result in best_results.items():
+    print(f"Best Parameters for {name}: {result['Best Parameters']}")
+    print(f"Best Model: {result['Best Model']}")
+    
+    # Display confusion matrix
+    cm = result['Confusion Matrix']
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
+                xticklabels=['Negative', 'Positive'], yticklabels=['Negative', 'Positive'])
+    plt.title(f'Confusion Matrix - Best Model ({name})')
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual')
+    plt.show()
+    
+    # Display performance summary (Accuracy, Precision, Recall, F1)
+    perf_df = result['Performance Summary']
+    display(perf_df)
+
+# If you want to visualize the comparison of the best F1 scores for each variant
+best_f1_scores = {name: result['Test F1'] for name, result in best_results.items()}
+
+plt.figure(figsize=(8, 6))
+plt.bar(best_f1_scores.keys(), best_f1_scores.values(), color='skyblue')
+plt.title('Best Test F1 Score by Data Variant (Hyperparameter Tuning)')
+plt.xlabel('Data Variant')
+plt.ylabel('Test F1 Score')
+plt.show()
+
+# If you want to compare train and test times for each variant
+train_times = {name: result['Train Time'] for name, result in best_results.items()}
+test_times = {name: result['Test Time'] for name, result in best_results.items()}
+
+# Plotting the training and testing times for comparison
+fig, ax = plt.subplots(figsize=(10, 6))
+
+bar_width = 0.35
+index = np.arange(len(train_times))
+
+bar1 = ax.bar(index, train_times.values(), bar_width, label='Train Time', color='skyblue')
+bar2 = ax.bar(index + bar_width, test_times.values(), bar_width, label='Test Time', color='salmon')
+
+ax.set_xlabel('Data Variant')
+ax.set_ylabel('Time (seconds)')
+ax.set_title('Training vs Testing Time by Data Variant')
+ax.set_xticks(index + bar_width / 2)
+ax.set_xticklabels(train_times.keys())
+ax.legend()
+
+plt.tight_layout()
+plt.show()
