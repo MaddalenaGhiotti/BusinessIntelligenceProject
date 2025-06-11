@@ -1,17 +1,17 @@
 Best Parameters for Scaled: {'max_depth': None, 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 50}
 Best Model: RandomForestClassifier(n_estimators=50, random_state=20000131)
-                     Accuracy  Precision    Recall        F1
-Scaled (Best Model)  0.972789        1.0  0.891892  0.942857
+                     Accuracy  Precision    Recall        F1  Train Time  Test Time
+Scaled (Best Model)  0.972789        1.0  0.891892  0.942857    0.114047   0.007946
 Best Parameters for PCA: {'max_depth': None, 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 200}
 Best Model: RandomForestClassifier(n_estimators=200, random_state=20000131)
-                  Accuracy  Precision    Recall        F1
-PCA (Best Model)  0.938776        1.0  0.756757  0.861538
+                  Accuracy  Precision    Recall        F1  Train Time  Test Time
+PCA (Best Model)  0.938776        1.0  0.756757  0.861538    0.582466   0.024357
 Best Parameters for No Features: {'max_depth': None, 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 50}
 Best Model: RandomForestClassifier(n_estimators=50, random_state=20000131)
-                          Accuracy  Precision    Recall        F1
-No Features (Best Model)  0.972789   0.971429  0.918919  0.944444
+                          Accuracy  Precision    Recall        F1  Train Time  Test Time
+No Features (Best Model)  0.972789   0.971429  0.918919  0.944444    0.112469    0.00767
 Best Parameters for No Smoking: {'max_depth': 10, 'min_samples_leaf': 1, 'min_samples_split': 5, 'n_estimators': 50}
 Best Model: RandomForestClassifier(max_depth=10, min_samples_split=5, n_estimators=50,
                        random_state=20000131)
-                         Accuracy  Precision    Recall        F1
-No Smoking (Best Model)  0.959184        1.0  0.837838  0.911765
+                         Accuracy  Precision    Recall        F1  Train Time  Test Time
+No Smoking (Best Model)  0.959184        1.0  0.837838  0.911765    0.117697   0.007482
