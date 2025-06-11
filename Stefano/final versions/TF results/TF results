@@ -1,0 +1,17 @@
+Best Parameters for Scaled: {'max_depth': None, 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 300}
+Best Model: RandomForestClassifier(n_estimators=300, random_state=20000131)
+                     Accuracy  Precision    Recall        F1  Train Time  Test Time
+Scaled (Best Model)  0.986395   0.972973  0.972973  0.972973    0.790321   0.036242
+Best Parameters for PCA: {'max_depth': None, 'min_samples_leaf': 1, 'min_samples_split': 5, 'n_estimators': 50}
+Best Model: RandomForestClassifier(min_samples_split=5, n_estimators=50,
+                       random_state=20000131)
+                  Accuracy  Precision    Recall        F1  Train Time  Test Time
+PCA (Best Model)  0.952381   0.941176  0.864865  0.901408    0.193844   0.007509
+Best Parameters for No Features: {'max_depth': 10, 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 50}
+Best Model: RandomForestClassifier(max_depth=10, n_estimators=50, random_state=20000131)
+                          Accuracy  Precision    Recall    F1  Train Time  Test Time
+No Features (Best Model)  0.979592   0.947368  0.972973  0.96    0.129348   0.007691
+Best Parameters for No Smoking: {'max_depth': 10, 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 50}
+Best Model: RandomForestClassifier(max_depth=10, n_estimators=50, random_state=20000131)
+                         Accuracy  Precision    Recall        F1  Train Time  Test Time
+No Smoking (Best Model)  0.986395   0.972973  0.972973  0.972973    0.142731   0.007526
