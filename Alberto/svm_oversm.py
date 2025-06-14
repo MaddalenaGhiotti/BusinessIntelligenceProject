@@ -16,7 +16,7 @@ import numpy as np
 ###############
 
 # Setting a random seed for reproducibility
-SEED = 20000131
+SEED = 42
 random.seed(SEED)
 np.random.seed(SEED)
 
