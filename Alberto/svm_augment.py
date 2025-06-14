@@ -15,6 +15,7 @@ import numpy as np
 # FETCHING DATA
 ###############
 
+# Setting a random seed for reproducibility
 SEED = 20000131
 random.seed(SEED)
 np.random.seed(SEED)
