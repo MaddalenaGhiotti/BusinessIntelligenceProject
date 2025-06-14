@@ -25,10 +25,10 @@ trainingData = pd.read_csv('../Data/diabetes_train.csv')
 testData = pd.read_csv('../Data/diabetes_test.csv')
 
 # Preprocessing the data (with oversample)
-df_train_scal, df_test_scal, y_train, y_test = preprocessing_diabetes_v3(trainingData, testData, augment=True, oversample=True)
-df_train_noFeat, df_test_noFeat, _, _ = preprocessing_diabetes_v3(trainingData, testData, option='Delete', augment=True, oversample=True) 
-df_train_PCA, df_test_PCA, _, _ = preprocessing_diabetes_v3(trainingData, testData, option='PCA', augment=True, oversample=True)
-df_train_noSmok, df_test_noSmok, _, _ = preprocessing_diabetes_v3(trainingData, testData, augment=True, oversample=True, delete_smoking=True)
+df_train_scal, df_test_scal, y_train, y_test = preprocessing_diabetes_v3(trainingData, testData, augment=True, oversample=False)
+df_train_noFeat, df_test_noFeat, _, _ = preprocessing_diabetes_v3(trainingData, testData, option='Delete', augment=True, oversample=False) 
+df_train_PCA, df_test_PCA, _, _ = preprocessing_diabetes_v3(trainingData, testData, option='PCA', augment=True, oversample=False)
+df_train_noSmok, df_test_noSmok, _, _ = preprocessing_diabetes_v3(trainingData, testData, augment=True, oversample=False, delete_smoking=True)
 
 ##########################################################################################
 
