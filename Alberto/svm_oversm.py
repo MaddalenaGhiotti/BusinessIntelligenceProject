@@ -82,13 +82,13 @@ ker_list = ['rbf', 'sigmoid', 'poly']
 hparameters = {'kernel':ker_list, 'C':C_list, 'gamma':gamma_list}
 
 # Perform grid search for each data type
-hp_results_scal = ksvm_gridsearch(df_train_scal, y_train, hparameters)
+hp_results_scal = ksvm_gridsearch(df_train_scal, y_train, hparameters, random_seed=SEED)
 hp_results_scal = hp_results_scal.sort_values(by='mean_test_score', ascending=False)
-hp_results_PCA = ksvm_gridsearch(df_train_PCA, y_train, hparameters)
+hp_results_PCA = ksvm_gridsearch(df_train_PCA, y_train, hparameters, random_seed=SEED)
 hp_results_PCA = hp_results_PCA.sort_values(by='mean_test_score', ascending=False)
-hp_results_noFeat = ksvm_gridsearch(df_train_noFeat, y_train, hparameters)
+hp_results_noFeat = ksvm_gridsearch(df_train_noFeat, y_train, hparameters, random_seed=SEED)
 hp_results_noFeat = hp_results_noFeat.sort_values(by='mean_test_score', ascending=False)
-hp_results_noSmok = ksvm_gridsearch(df_train_noSmok, y_train, hparameters)
+hp_results_noSmok = ksvm_gridsearch(df_train_noSmok, y_train, hparameters, random_seed=SEED)
 hp_results_noSmok = hp_results_noSmok.sort_values(by='mean_test_score', ascending=False)
 
 # Displaying the results of the grid search
