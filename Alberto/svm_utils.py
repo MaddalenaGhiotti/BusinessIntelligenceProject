@@ -18,7 +18,7 @@ from metrics import performances
 # TRAINING SVM
 ##############
 
-def lsvm_training(X_train, y_train, X_test, y_test, data_type=''):
+def lsvm_training(X_train, y_train, X_test, y_test, data_type='', random_seed=20000131):
     # Trains the Linear SVM model and evaluate its performance.
 
     # Parameters initialization
@@ -28,7 +28,6 @@ def lsvm_training(X_train, y_train, X_test, y_test, data_type=''):
     C_soft = 1
     loss_soft = 'hinge'
     dual_soft = True
-    random_seed = 20000131
 
     # Prepare the model
     lsvm_hard = LinearSVC(C = C_hard, loss = loss_hard, dual = dual_hard, random_state = random_seed, max_iter=20000)
@@ -73,10 +72,8 @@ def lsvm_training(X_train, y_train, X_test, y_test, data_type=''):
 
 ##########################################################################################
 
-def ksvm_gridsearch(X_train, y_train, hparameters):
+def ksvm_gridsearch(X_train, y_train, hparameters, random_seed=20000131):
     # Trains the SVM model with a specified kernel and evaluates its performance using GridSearchCV.
-    # Set random seed for reproducibility
-    random_seed = 20000131
     # SVM initialization
     svm = SVC(random_state=random_seed)
     # GridSearch initialization
@@ -97,12 +94,9 @@ def ksvm_gridsearch(X_train, y_train, hparameters):
 
 ##########################################################################################
 
-def ksvm_train(X_train, y_train, X_test, y_test, kernel_type, C = 1, gamma='auto', data_type=''):
+def ksvm_train(X_train, y_train, X_test, y_test, kernel_type, C = 1, gamma='auto', data_type='', random_seed=20000131):
     # Train the SVM model with a specified kernel and evaluate its performance on test.
     # Accepted kernel types: 'rbf', 'poly', 'sigmoid'
-
-    # Random seed initialization
-    random_seed = 20000131
 
     # Prepare the model
     if kernel_type == 'sigmoid':
