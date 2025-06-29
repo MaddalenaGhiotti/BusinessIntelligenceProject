@@ -7,6 +7,7 @@ sys.path.insert(1, '../Data')
 from preprocessing_v2 import preprocessing_diabetes_v2
 from svm_utils import lsvm_training, ksvm_gridsearch, ksvm_train
 import random
+import numpy as np
 
 ##########################################################################################
 
@@ -14,7 +15,10 @@ import random
 # FETCHING DATA
 ###############
 
-random.seed(20000131)
+# Setting a random seed for reproducibility
+SEED = 42
+random.seed(SEED)
+np.random.seed(SEED)
 
 # Importing the dataset
 trainingData = pd.read_csv('../Data/diabetes_train.csv')
@@ -38,10 +42,10 @@ df_test_noSmok = df_test_scal[[col for col in df_test_scal.columns if 'smoking' 
 # LINEAR SVM
 # Train Linear SVM with hard and soft margins
 lsvm_results = {
-    'Scaled': lsvm_training(df_train_scal, y_train, df_test_scal, y_test, 'Scaled'),
-    'PCA': lsvm_training(df_train_PCA, y_train, df_test_PCA, y_test, 'PCA'),
-    'No Features': lsvm_training(df_train_noFeat, y_train, df_test_noFeat, y_test, 'No Features'),
-    'No Smoking': lsvm_training(df_train_noSmok, y_train, df_test_noSmok, y_test, 'No Smoking'),
+    'Scaled': lsvm_training(df_train_scal, y_train, df_test_scal, y_test, 'Scaled', random_seed=SEED),
+    'PCA': lsvm_training(df_train_PCA, y_train, df_test_PCA, y_test, 'PCA', random_seed=SEED),
+    'No Features': lsvm_training(df_train_noFeat, y_train, df_test_noFeat, y_test, 'No Features', random_seed=SEED),
+    'No Smoking': lsvm_training(df_train_noSmok, y_train, df_test_noSmok, y_test, 'No Smoking', random_seed=SEED),
 }
 
 # Display Linear SVM results
@@ -78,13 +82,13 @@ ker_list = ['rbf', 'sigmoid', 'poly']
 hparameters = {'kernel':ker_list, 'C':C_list, 'gamma':gamma_list}
 
 # Perform grid search for each data type
-hp_results_scal = ksvm_gridsearch(df_train_scal, y_train, hparameters)
+hp_results_scal = ksvm_gridsearch(df_train_scal, y_train, hparameters, random_seed=SEED)
 hp_results_scal = hp_results_scal.sort_values(by='mean_test_score', ascending=False)
-hp_results_PCA = ksvm_gridsearch(df_train_PCA, y_train, hparameters)
+hp_results_PCA = ksvm_gridsearch(df_train_PCA, y_train, hparameters, random_seed=SEED)
 hp_results_PCA = hp_results_PCA.sort_values(by='mean_test_score', ascending=False)
-hp_results_noFeat = ksvm_gridsearch(df_train_noFeat, y_train, hparameters)
+hp_results_noFeat = ksvm_gridsearch(df_train_noFeat, y_train, hparameters, random_seed=SEED)
 hp_results_noFeat = hp_results_noFeat.sort_values(by='mean_test_score', ascending=False)
-hp_results_noSmok = ksvm_gridsearch(df_train_noSmok, y_train, hparameters)
+hp_results_noSmok = ksvm_gridsearch(df_train_noSmok, y_train, hparameters, random_seed=SEED)
 hp_results_noSmok = hp_results_noSmok.sort_values(by='mean_test_score', ascending=False)
 
 # Displaying the results of the grid search
@@ -105,13 +109,13 @@ ker_list = ['rbf']
 hparameters = {'kernel':ker_list, 'C':C_list, 'gamma':gamma_list}
 
 # Perform grid search for each data type
-hp_rbf_results_scal = ksvm_gridsearch(df_train_scal, y_train, hparameters)
+hp_rbf_results_scal = ksvm_gridsearch(df_train_scal, y_train, hparameters, random_seed=SEED)
 hp_rbf_results_scal = hp_rbf_results_scal.sort_values(by='mean_test_score', ascending=False)
-hp_rbf_results_PCA = ksvm_gridsearch(df_train_PCA, y_train, hparameters)
+hp_rbf_results_PCA = ksvm_gridsearch(df_train_PCA, y_train, hparameters, random_seed=SEED)
 hp_rbf_results_PCA = hp_rbf_results_PCA.sort_values(by='mean_test_score', ascending=False)
-hp_rbf_results_noFeat = ksvm_gridsearch(df_train_noFeat, y_train, hparameters)
+hp_rbf_results_noFeat = ksvm_gridsearch(df_train_noFeat, y_train, hparameters, random_seed=SEED)
 hp_rbf_results_noFeat = hp_rbf_results_noFeat.sort_values(by='mean_test_score', ascending=False)
-hp_rbf_results_noSmok = ksvm_gridsearch(df_train_noSmok, y_train, hparameters)
+hp_rbf_results_noSmok = ksvm_gridsearch(df_train_noSmok, y_train, hparameters, random_seed=SEED)
 hp_rbf_results_noSmok = hp_rbf_results_noSmok.sort_values(by='mean_test_score', ascending=False)
 
 # Displaying the results of the grid search
@@ -136,10 +140,10 @@ gamma_noSmok = hp_rbf_results_noSmok.iloc[0]['params']['gamma']
 
 # Tesiting best parameters on all data types
 rbf_kernel_results_all = {
-    'Scaled': ksvm_train(df_train_scal, y_train, df_test_scal, y_test, 'rbf', C_scal, gamma_scal, 'Scaled'),
-    'PCA': ksvm_train(df_train_PCA, y_train, df_test_PCA, y_test, 'rbf', C_PCA, gamma_PCA, 'PCA'),
-    'No Feature': ksvm_train(df_train_noFeat, y_train, df_test_noFeat, y_test, 'rbf', C_noFeat, gamma_noFeat, 'No Feature'),
-    'No Smoking': ksvm_train(df_train_noSmok, y_train, df_test_noSmok, y_test, 'rbf', C_noSmok, gamma_noSmok, 'No Smoking'),
+    'Scaled': ksvm_train(df_train_scal, y_train, df_test_scal, y_test, 'rbf', C_scal, gamma_scal, 'Scaled', random_seed=SEED),
+    'PCA': ksvm_train(df_train_PCA, y_train, df_test_PCA, y_test, 'rbf', C_PCA, gamma_PCA, 'PCA', random_seed=SEED),
+    'No Feature': ksvm_train(df_train_noFeat, y_train, df_test_noFeat, y_test, 'rbf', C_noFeat, gamma_noFeat, 'No Feature', random_seed=SEED),
+    'No Smoking': ksvm_train(df_train_noSmok, y_train, df_test_noSmok, y_test, 'rbf', C_noSmok, gamma_noSmok, 'No Smoking', random_seed=SEED),
 }
 # Display kernel results
 print(f'Kernel rbf SVM test results on all data types:')
