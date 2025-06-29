@@ -90,6 +90,9 @@ def random_forest_tune(X_train, y_train, X_test, y_test, data_type='', verbose=F
     best_params = grid_search.best_params_
     best_model = grid_search.best_estimator_
 
+    # Mean F1-score across cross-validation folds
+    mean_cv_f1 = grid_search.cv_results_['mean_test_score'][grid_search.best_index_]
+
     # Get performance metrics on the test set
     y_train_pred = best_model.predict(X_train)
     y_test_pred = best_model.predict(X_test)
@@ -114,11 +117,13 @@ def random_forest_tune(X_train, y_train, X_test, y_test, data_type='', verbose=F
         'Test F1': test_f1,
         'Test Precision': test_precision,
         'Test Recall': test_recall,
+        'CV Mean F1': mean_cv_f1,
         'Train Time': train_time,
         'Test Time': test_time,
         'Performance Summary': perf_df,
         'Confusion Matrix': cm
     }
+
 
 # Hyperparameter tuning for different data variants
 data_variants = {
