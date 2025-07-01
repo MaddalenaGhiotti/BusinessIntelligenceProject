@@ -80,7 +80,7 @@ def preprocessing_diabetes(df_train, df_test, option='', augment=False,
 
     # Oversample
     if oversample:
-        smote = SMOTE()
+        smote = SMOTE(random_state=42)
         X_train, y_train = smote.fit_resample(X_train, y_train)
 
     # Dividing real vs other columns
