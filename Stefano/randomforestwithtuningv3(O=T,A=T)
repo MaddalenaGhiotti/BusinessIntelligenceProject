@@ -20,7 +20,7 @@ from preprocessing import preprocessing_diabetes,combination_features
 trainingData = pd.read_csv('../Data/diabetes_train.csv')
 testData = pd.read_csv('../Data/diabetes_test.csv')
 
-# Preprocessing the data (v3 oversample=True,augment=True)
+# Preprocessing the data (oversample=True,augment=True)
 df_train_scal, df_test_scal, y_train, y_test = preprocessing_diabetes(trainingData, testData,oversample=True,augment=True)
 df_train_noFeat, df_test_noFeat, _, _ = preprocessing_diabetes(trainingData, testData, option='Delete',oversample=True,augment=True)
 df_train_PCA, df_test_PCA, _, _ = preprocessing_diabetes(trainingData, testData, option='PCA',oversample=True,augment=True)
@@ -67,7 +67,6 @@ def performances(model, X_train, y_train, X_test, y_test, title=None):
     return df, cmat, train_time, test_time
 
 # Function for hyperparameter tuning with GridSearchCV and capturing times
-# Function for hyperparameter tuning with GridSearchCV and capturing times
 def random_forest_tune(X_train, y_train, X_test, y_test, data_type='', verbose=False):
     # Random Forest Model
     rf_model = RandomForestClassifier(random_state=20000131)
@@ -93,8 +92,6 @@ def random_forest_tune(X_train, y_train, X_test, y_test, data_type='', verbose=F
 
     # Mean F1-score across cross-validation folds
     mean_cv_f1 = grid_search.cv_results_['mean_test_score'][grid_search.best_index_]
-
-    # Stampa subito la F1 media della cross-validation
     print(f"Best F1 Score (CV) for {data_type}: {mean_cv_f1:.4f}")
 
     # Get performance metrics on the test set
@@ -131,7 +128,6 @@ def random_forest_tune(X_train, y_train, X_test, y_test, data_type='', verbose=F
 
 
 # Hyperparameter tuning for different data variants
-# Hyperparameter tuning for different data variants
 data_variants = {
     'Scaled': (df_train_scal, df_test_scal),
     'PCA': (df_train_PCA, df_test_PCA),
@@ -157,7 +153,6 @@ best_results_df.index.name = 'Data Variant'
 best_results_df.reset_index(inplace=True)
 display(best_results_df)
 
-# Optional: Plot the performance summary, confusion matrix, etc.
 for name, result in best_results.items():
     print(f"Best Parameters for {name}: {result['Best Parameters']}")
     print(f"Best Model: {result['Best Model']}")
@@ -176,7 +171,6 @@ for name, result in best_results.items():
     perf_df = result['Performance Summary']
     display(perf_df)
 
-# If you want to visualize the comparison of the best F1 scores for each variant
 best_f1_scores = {name: result['Test F1'] for name, result in best_results.items()}
 
 plt.figure(figsize=(8, 6))
@@ -186,7 +180,6 @@ plt.xlabel('Data Variant')
 plt.ylabel('Test F1 Score')
 plt.show()
 
-# If you want to compare train and test times for each variant
 train_times = {name: result['Train Time'] for name, result in best_results.items()}
 test_times = {name: result['Test Time'] for name, result in best_results.items()}
 

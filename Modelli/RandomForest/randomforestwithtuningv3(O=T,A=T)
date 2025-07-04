@@ -20,10 +20,10 @@ from preprocessing import preprocessing_diabetes,combination_features
 trainingData = pd.read_csv('../Data/diabetes_train.csv')
 testData = pd.read_csv('../Data/diabetes_test.csv')
 
-# Preprocessing the data (v3 oversample=False,augment=False)
-df_train_scal, df_test_scal, y_train, y_test = preprocessing_diabetes(trainingData, testData,oversample=False,augment=False)
-df_train_noFeat, df_test_noFeat, _, _ = preprocessing_diabetes(trainingData, testData, option='Delete',oversample=False,augment=False)
-df_train_PCA, df_test_PCA, _, _ = preprocessing_diabetes(trainingData, testData, option='PCA',oversample=False,augment=False)
+# Preprocessing the data (v3 oversample=True,augment=True)
+df_train_scal, df_test_scal, y_train, y_test = preprocessing_diabetes(trainingData, testData,oversample=True,augment=True)
+df_train_noFeat, df_test_noFeat, _, _ = preprocessing_diabetes(trainingData, testData, option='Delete',oversample=True,augment=True)
+df_train_PCA, df_test_PCA, _, _ = preprocessing_diabetes(trainingData, testData, option='PCA',oversample=True,augment=True)
 
 # No smoking
 df_train_noSmok = df_train_scal[[col for col in df_train_scal.columns if 'smoking' not in col]]
@@ -31,6 +31,7 @@ df_test_noSmok = df_test_scal[[col for col in df_test_scal.columns if 'smoking' 
 
 from sklearn.ensemble import RandomForestClassifier
 
+# Define the function for performance evaluation with training and testing times
 def performances(model, X_train, y_train, X_test, y_test, title=None):
     # Measure training time
     start_train = time.time()
@@ -89,6 +90,10 @@ def random_forest_tune(X_train, y_train, X_test, y_test, data_type='', verbose=F
     best_params = grid_search.best_params_
     best_model = grid_search.best_estimator_
 
+    # Mean F1-score across cross-validation folds
+    mean_cv_f1 = grid_search.cv_results_['mean_test_score'][grid_search.best_index_]
+    print(f"Best F1 Score (CV) for {data_type}: {mean_cv_f1:.4f}")
+
     # Get performance metrics on the test set
     y_train_pred = best_model.predict(X_train)
     y_test_pred = best_model.predict(X_test)
@@ -113,11 +118,14 @@ def random_forest_tune(X_train, y_train, X_test, y_test, data_type='', verbose=F
         'Test F1': test_f1,
         'Test Precision': test_precision,
         'Test Recall': test_recall,
+        'CV Mean F1': mean_cv_f1,
         'Train Time': train_time,
         'Test Time': test_time,
         'Performance Summary': perf_df,
         'Confusion Matrix': cm
     }
+
+
 
 # Hyperparameter tuning for different data variants
 data_variants = {
@@ -138,13 +146,13 @@ for name, (X_train, X_test) in data_variants.items():
         **metrics
     }
 
+
 # Format results into a DataFrame for easier display
 best_results_df = pd.DataFrame(best_results).T
 best_results_df.index.name = 'Data Variant'
 best_results_df.reset_index(inplace=True)
 display(best_results_df)
 
-# Optional: Plot the performance summary, confusion matrix, etc.
 for name, result in best_results.items():
     print(f"Best Parameters for {name}: {result['Best Parameters']}")
     print(f"Best Model: {result['Best Model']}")
@@ -163,7 +171,6 @@ for name, result in best_results.items():
     perf_df = result['Performance Summary']
     display(perf_df)
 
-# If you want to visualize the comparison of the best F1 scores for each variant
 best_f1_scores = {name: result['Test F1'] for name, result in best_results.items()}
 
 plt.figure(figsize=(8, 6))
@@ -173,7 +180,6 @@ plt.xlabel('Data Variant')
 plt.ylabel('Test F1 Score')
 plt.show()
 
-# If you want to compare train and test times for each variant
 train_times = {name: result['Train Time'] for name, result in best_results.items()}
 test_times = {name: result['Test Time'] for name, result in best_results.items()}
 
