@@ -13,7 +13,7 @@ import os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 sys.path.insert(1, '../Data')
-from preprocessing_v3 import preprocessing_diabetes_v3,combination_features
+from preprocessing import preprocessing_diabetes,combination_features
 
 
 # Importing the dataset
@@ -21,9 +21,9 @@ trainingData = pd.read_csv('../Data/diabetes_train.csv')
 testData = pd.read_csv('../Data/diabetes_test.csv')
 
 # Preprocessing the data (v3 oversample=True,augment=True)
-df_train_scal, df_test_scal, y_train, y_test = preprocessing_diabetes_v3(trainingData, testData,oversample=True,augment=True)
-df_train_noFeat, df_test_noFeat, _, _ = preprocessing_diabetes_v3(trainingData, testData, option='Delete',oversample=True,augment=True)
-df_train_PCA, df_test_PCA, _, _ = preprocessing_diabetes_v3(trainingData, testData, option='PCA',oversample=True,augment=True)
+df_train_scal, df_test_scal, y_train, y_test = preprocessing_diabetes(trainingData, testData,oversample=True,augment=True)
+df_train_noFeat, df_test_noFeat, _, _ = preprocessing_diabetes(trainingData, testData, option='Delete',oversample=True,augment=True)
+df_train_PCA, df_test_PCA, _, _ = preprocessing_diabetes(trainingData, testData, option='PCA',oversample=True,augment=True)
 
 # No smoking
 df_train_noSmok = df_train_scal[[col for col in df_train_scal.columns if 'smoking' not in col]]
@@ -67,6 +67,7 @@ def performances(model, X_train, y_train, X_test, y_test, title=None):
     return df, cmat, train_time, test_time
 
 # Function for hyperparameter tuning with GridSearchCV and capturing times
+# Function for hyperparameter tuning with GridSearchCV and capturing times
 def random_forest_tune(X_train, y_train, X_test, y_test, data_type='', verbose=False):
     # Random Forest Model
     rf_model = RandomForestClassifier(random_state=20000131)
@@ -92,6 +93,9 @@ def random_forest_tune(X_train, y_train, X_test, y_test, data_type='', verbose=F
 
     # Mean F1-score across cross-validation folds
     mean_cv_f1 = grid_search.cv_results_['mean_test_score'][grid_search.best_index_]
+
+    # Stampa subito la F1 media della cross-validation
+    print(f"Best F1 Score (CV) for {data_type}: {mean_cv_f1:.4f}")
 
     # Get performance metrics on the test set
     y_train_pred = best_model.predict(X_train)
@@ -125,6 +129,8 @@ def random_forest_tune(X_train, y_train, X_test, y_test, data_type='', verbose=F
     }
 
 
+
+# Hyperparameter tuning for different data variants
 # Hyperparameter tuning for different data variants
 data_variants = {
     'Scaled': (df_train_scal, df_test_scal),
@@ -143,6 +149,7 @@ for name, (X_train, X_test) in data_variants.items():
         'Best Model': best_model,
         **metrics
     }
+
 
 # Format results into a DataFrame for easier display
 best_results_df = pd.DataFrame(best_results).T
