@@ -10,15 +10,19 @@ from IPython.display import display
 import sys
 
 import os
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../Data'))
 
-sys.path.insert(1, '../Data')
-from preprocessing import preprocessing_diabetes,combination_features
+sys.path.insert(0, data_path)
 
+print(f"Data path: {data_path}")
+print(f"sys.path: {sys.path}")
 
-# Importing the dataset
-trainingData = pd.read_csv('../Data/diabetes_train.csv')
-testData = pd.read_csv('../Data/diabetes_test.csv')
+from preprocessing import preprocessing_diabetes, combination_features
+
+train_file = os.path.join(data_path, 'diabetes_train.csv')
+test_file = os.path.join(data_path, 'diabetes_test.csv')
+trainingData = pd.read_csv(train_file)
+testData = pd.read_csv(test_file)
 
 # Preprocessing the data (v3 oversample=True,augment=False)
 df_train_scal, df_test_scal, y_train, y_test = preprocessing_diabetes(trainingData, testData,oversample=True,augment=False)
