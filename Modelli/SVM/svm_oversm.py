@@ -74,7 +74,6 @@ for key, (hard_perf, soft_perf) in lsvm_results.items():
 ##########################################################################################
 
 # KERNEL SVM (GRIDSEARCH) - ALL KERNELS
-"""
 # Definizione delle liste di valori tra i quali "scorrere" per gli iper-parametri:
 C_list = [1, 5, 10, 25, 50, 100]
 gamma_list = [1, 0.5, 0.1, 0.01, 'scale', 'auto']
@@ -92,12 +91,15 @@ hp_results_noSmok = ksvm_gridsearch(df_train_noSmok, y_train, hparameters, rando
 hp_results_noSmok = hp_results_noSmok.sort_values(by='mean_test_score', ascending=False)
 
 # Displaying the results of the grid search
-print('Grid Search Results:')
+print('Grid Search Results - All Kernels:')
+print('Scaled Data:')
 display(hp_results_scal[['params', 'mean_test_score', 'std_test_score']])
+print('PCA Data:')
 display(hp_results_PCA[['params', 'mean_test_score', 'std_test_score']])
+print('No Feature Data:')
 display(hp_results_noFeat[['params', 'mean_test_score', 'std_test_score']])
+print('No Smoking Data:')
 display(hp_results_noSmok[['params', 'mean_test_score', 'std_test_score']])
-"""
 
 ##########################################################################################
 
@@ -119,10 +121,14 @@ hp_rbf_results_noSmok = ksvm_gridsearch(df_train_noSmok, y_train, hparameters, r
 hp_rbf_results_noSmok = hp_rbf_results_noSmok.sort_values(by='mean_test_score', ascending=False)
 
 # Displaying the results of the grid search
-print('Grid Search Results:')
+print('Grid Search Results - RBF Kernel:')
+print('Scaled Data:')
 display(hp_rbf_results_scal[['params', 'mean_test_score', 'std_test_score']])
+print('PCA Data:')
 display(hp_rbf_results_PCA[['params', 'mean_test_score', 'std_test_score']])
+print('No Feature Data:')
 display(hp_rbf_results_noFeat[['params', 'mean_test_score', 'std_test_score']])
+print('No Smoking Data:')
 display(hp_rbf_results_noSmok[['params', 'mean_test_score', 'std_test_score']])
 
 ##########################################################################################
@@ -148,9 +154,6 @@ rbf_kernel_results_all = {
 # Display kernel results
 print(f'Kernel rbf SVM test results on all data types:')
 for key in rbf_kernel_results_all.keys():
-    # Display metrics
-    display(rbf_kernel_results_all[key][0][0])
-    display(rbf_kernel_results_all[key][1][0])
     # Display confusion matrix
     plt.figure()
     sns.heatmap(rbf_kernel_results_all[key][1][1], annot=True, fmt='d', cmap='Blues', xticklabels=['Negative', 'Positive'], yticklabels=['Negative', 'Positive'])
@@ -158,3 +161,6 @@ for key in rbf_kernel_results_all.keys():
     plt.xlabel('Predicted')
     plt.ylabel('Actual')
     plt.show()
+    # Display metrics
+    display(rbf_kernel_results_all[key][0][0])
+    display(rbf_kernel_results_all[key][1][0])
