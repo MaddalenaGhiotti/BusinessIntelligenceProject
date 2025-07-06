@@ -8,6 +8,10 @@ Identificare precocemente i soggetti a rischio di diabete attraverso l'analisi d
 - Pre-processing
 - Training e predizione modelli ML
 
+## Struttura
+
+
+
 ## Installazione
 
 ```bash
@@ -17,4 +21,14 @@ git clone  https://github.com/MaddalenaGhiotti/BusinessIntelligenceProject.git
 
 # Installa le dipendenze Python
 pip install -r requirements.txt
+```
+
+## Authors
+
+- Stefano Caprioli (s339841)
+- Martina Cristiani (s348736)
+- Fabio Daniele Diena (s332743)
+- Maddalena Ghiotti (s332834)
+- Alberto Prino (s348174)
+
 
