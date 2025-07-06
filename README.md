@@ -24,6 +24,9 @@ git clone  https://github.com/MaddalenaGhiotti/BusinessIntelligenceProject.git
 pip install -r requirements.txt
 ```
 
+## Note   
+Per la replicabilità, prima dell'addestramento e la previsione con HistGradientBoosting è necessario aggiungere `randomm_state=random_seed` come parametro della funzione `SMOTE()` , all'interno della funzione di pre-processing.
+
 ## Authors
 
 - Stefano Caprioli (s339841)
