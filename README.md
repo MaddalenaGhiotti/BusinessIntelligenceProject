@@ -10,7 +10,13 @@ Identificare precocemente i soggetti a rischio di diabete attraverso l'analisi d
 
 ## Struttura
 
+- `Data` - 
 
+- **Reinforce_ActorCritic/**
+  - **env/**
+    - **assets/**
+      - `hopper.xml` – xml file of the hopper environment
+    - `custom_hopper.py` 
 
 ## Installazione
 
