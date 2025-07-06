@@ -10,8 +10,10 @@ Identificare precocemente i soggetti a rischio di diabete attraverso l'analisi d
 
 ## Struttura
 
-- **Data/** - Cartella contenente dataset in `.csv`, analisi esplorativa del training set (con grafici) e file di pre-processing (con visualizzazioni e funzione).
-- **Modelli/** - Cartella contenente gli eseguibili dei modelli per addestramento e previsione, con risultati.
+- **Data/**   
+  Cartella contenente dataset in `.csv`, analisi esplorativa del training set (con grafici) e file di pre-processing (con visualizzazioni e funzione).
+- **Modelli/**   
+  Cartella contenente gli eseguibili dei modelli per addestramento e previsione, con risultati.
 
 ## Installazione
 
